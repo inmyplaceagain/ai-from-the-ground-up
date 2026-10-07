@@ -145,7 +145,7 @@ export default function HomePage() {
         <footer className="border-t border-border pt-8 pb-8 text-[0.78rem] text-fg-subtle font-[family-name:var(--font-geist-sans)]">
           <p>
             An open source course by{" "}
-            <a href="https://www.linkedin.com/in/denishavranek/" className="text-fg-muted hover:text-fg transition-colors">
+            <a href="https://www.linkedin.com/in/dhavranek/" className="text-fg-muted hover:text-fg transition-colors">
               Denis Havranek
             </a>
             . Made to bring peace to the AI transition.

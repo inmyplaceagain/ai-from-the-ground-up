@@ -157,7 +157,7 @@ export function BookNav() {
         <div className="border-t border-border px-5 py-3">
           <p className="text-[0.68rem] text-fg-subtle font-[family-name:var(--font-geist-sans)]">
             By{" "}
-            <a href="https://www.linkedin.com/in/denishavranek/" className="text-fg-muted hover:text-fg transition-colors">
+            <a href="https://www.linkedin.com/in/dhavranek/" className="text-fg-muted hover:text-fg transition-colors">
               Denis Havranek
             </a>
           </p>
