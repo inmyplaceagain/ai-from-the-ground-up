@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lora, Geist_Mono } from "next/font/google";
 import { Geist } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { BookNav } from "@/components/book-nav";
 import "./globals.css";
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </div>
         </div>
+        <Analytics />
       </body>
     </html>
   );
