@@ -169,6 +169,8 @@ body {
 
 .chapter-content {
   font-family: var(--font-lora), Georgia, 'Times New Roman', serif;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .chapter-content > p:first-of-type::first-letter {

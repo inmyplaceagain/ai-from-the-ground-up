@@ -18,7 +18,7 @@ export default async function ChapterLayout({
   const partData = PARTS[chapterData.part];
 
   return (
-    <div className="px-6 lg:px-16 xl:px-24 pt-14 lg:pt-0">
+    <div className="px-8 sm:px-12 lg:px-20 xl:px-28 pt-14 lg:pt-0">
       <article className="mx-auto max-w-[36rem] py-12 sm:py-20">
         {/* Chapter header */}
         <header className="mb-14">
