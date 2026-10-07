@@ -19,7 +19,7 @@ export default async function ChapterLayout({
 
   return (
     <div className="px-8 sm:px-12 lg:px-20 xl:px-28 pt-14 lg:pt-0">
-      <article className="mx-auto max-w-[36rem] py-12 sm:py-20">
+      <article className="py-12 sm:py-20" style={{ maxWidth: "40rem", marginInline: "auto" }}>
         {/* Chapter header */}
         <header className="mb-14">
           <p
