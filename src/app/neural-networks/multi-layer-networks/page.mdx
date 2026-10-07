@@ -1,0 +1,95 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+A single perceptron draws one line. That's useful, but most problems need more than one line. XOR proved that — you can't separate diagonals with a single cut.
+
+The fix: **stack perceptrons into layers**. Each layer draws its own lines, and the next layer combines the results.
+
+## The architecture
+
+A multi-layer network has three kinds of layers:
+
+1. **Input layer** — your data goes in (pixels, numbers, words). No computation happens here, it's just a pass-through.
+2. **Hidden layer(s)** — the middle. This is where the magic happens. Each neuron takes inputs from the previous layer, applies weights + activation, and passes the result forward.
+3. **Output layer** — the answer comes out (a classification, a probability, a prediction).
+
+Every neuron in one layer connects to **every** neuron in the next layer. That's why these are called "fully connected" or "dense" layers.
+
+<WebDevAnalogy webDev="Express middleware pipeline" ai="Neural network layers">
+Each middleware transforms the request and passes it to the next. The first middleware might parse JSON, the second checks auth, the third adds logging. Each layer handles one concern, and the final handler produces the response. Neural network layers work the same way — each transforms the data and passes it forward.
+</WebDevAnalogy>
+
+## What each layer learns
+
+This is the beautiful part. You don't tell the layers what to look for — they figure it out during training.
+
+But a pattern emerges:
+
+- **First hidden layer**: simple patterns. Edges, basic shapes, single features.
+- **Second hidden layer**: combinations. Corners, textures, feature pairs.
+- **Third hidden layer**: complex concepts. Faces, objects, abstract patterns.
+
+It's hierarchical. Each layer builds on what the previous one found, creating increasingly abstract representations of the input.
+
+Think about recognizing a face:
+- Layer 1: "there's a horizontal line here, a curve there"
+- Layer 2: "those lines form an eye shape, that curve is a nose"
+- Layer 3: "eye + nose + mouth in this arrangement = face"
+
+## Building one in code
+
+<CodeBlock language="python" title="A simple multi-layer network in PyTorch">
+{`import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Linear(2, 4),    # 2 inputs → 4 hidden neurons
+    nn.ReLU(),           # activation
+    nn.Linear(4, 4),    # 4 → 4 hidden neurons
+    nn.ReLU(),           # activation
+    nn.Linear(4, 1),    # 4 → 1 output
+    nn.Sigmoid()         # output as probability
+)`}
+</CodeBlock>
+
+That's a network with two hidden layers of 4 neurons each. The input has 2 features, the output is a single probability. Notice how each `Linear` layer is followed by an activation function — without those, the layers would collapse into one (as we discussed in the activation functions chapter).
+
+## The universal approximation theorem
+
+Here's the mind-blowing part. With just **one** hidden layer and enough neurons, a neural network can approximate **any** continuous function. Any input-output mapping you can imagine — given enough neurons, this thing can learn it.
+
+This is called the **universal approximation theorem**, proven in 1989.
+
+<Callout type="info" title="What this means in practice">
+A neural network is a universal function machine. You don't need to know the formula — you just need enough data and enough neurons, and the network will find the formula for you.
+</Callout>
+
+There's a catch: "enough neurons" might mean millions. And finding the right weights is its own challenge. The theorem says a solution *exists* — it doesn't say training will find it easily. That's why in practice, we use **deeper** networks (more layers) instead of **wider** ones (more neurons in one layer). Depth tends to be more efficient.
+
+## How XOR gets solved
+
+Remember XOR? One perceptron couldn't solve it. But with a hidden layer:
+
+- Hidden neuron 1 draws one line (separating one diagonal)
+- Hidden neuron 2 draws another line (separating the other diagonal)
+- The output neuron combines them: "above line 1 AND below line 2 → class 1"
+
+Two lines, one combination. Problem solved.
+
+This is the key insight of multi-layer networks: **the hidden layers create new representations of the data** that make the problem easier for the output layer. They transform a problem that isn't linearly separable into one that is.
+
+## How many layers? How many neurons?
+
+There's no formula. It depends on the problem:
+
+| Problem | Typical architecture |
+|---------|---------------------|
+| Simple classification (spam/not spam) | 1-2 hidden layers, 16-64 neurons |
+| Image recognition | 10-100+ layers (but specialized — CNNs) |
+| Language understanding | 12-96 layers (Transformers) |
+
+More layers = more capacity to learn complex patterns, but also more data needed and harder to train. We'll see why in the next chapter.
+
+## Summary
+
+Multi-layer networks stack neurons into layers. Each layer transforms the data and passes it forward. Early layers find simple patterns, later layers combine them into complex ones. With enough neurons, a network can learn any function — that's the universal approximation theorem. The trick is getting those millions of weights to the right values.
+
+Next: [Backpropagation](/neural-networks/backpropagation) — the algorithm that actually trains all those weights, layer by layer.

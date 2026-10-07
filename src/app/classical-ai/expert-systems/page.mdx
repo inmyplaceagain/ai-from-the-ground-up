@@ -1,0 +1,75 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Before machine learning, people tried to make AI by writing down everything an expert knows as a set of if/else rules. This was called an **expert system**, and it's basically a giant decision tree written by hand.
+
+## The idea
+
+Find a doctor, lawyer, or engineer. Sit them down. Ask them: "How do you make decisions?" Write every rule they tell you into code. Now the computer is an expert too.
+
+<CodeBlock language="python" title="A tiny medical expert system">
+{`def diagnose(symptoms):
+    if "fever" in symptoms and "cough" in symptoms:
+        if "body_aches" in symptoms:
+            return "Likely flu"
+        return "Possible cold"
+    if "chest_pain" in symptoms and "shortness_of_breath" in symptoms:
+        return "Seek emergency care"
+    if "sneezing" in symptoms and "runny_nose" in symptoms:
+        return "Likely allergies"
+    return "No clear diagnosis"
+
+print(diagnose(["fever", "cough", "body_aches"]))
+# "Likely flu"`}
+</CodeBlock>
+
+This works! For these five rules, it gives reasonable answers. And in the 1980s, expert systems like this were a big deal. Companies spent millions building them for everything from configuring computer orders to diagnosing diseases.
+
+<WebDevAnalogy webDev="A giant switch/case or routing config" ai="Expert system knowledge base">
+If you've ever maintained a 500-line routing config or a massive switch statement, you've felt the pain of an expert system. Every new case is another rule you have to write by hand.
+</WebDevAnalogy>
+
+## Why it breaks
+
+Add more symptoms. What about "fever" but no "cough"? What about "mild fever" vs "high fever"? What about combinations nobody anticipated?
+
+<CodeBlock language="python" title="The problem grows fast">
+{`# 5 symptoms with yes/no → 32 possible combinations
+# 10 symptoms → 1,024 combinations
+# 20 symptoms → 1,048,576 combinations
+# You can't write a rule for every one.`}
+</CodeBlock>
+
+Expert systems have three fundamental problems:
+
+**1. Rules contradict each other.** Two experts disagree. Whose rule wins? Now you need rules about which rules take priority — and rules about *those* rules.
+
+**2. Rules can't handle uncertainty.** A patient has 3 out of 5 flu symptoms. Is it flu? The system can't say "70% likely flu" — it either matches a rule or it doesn't.
+
+**3. Rules can't learn.** You see 10,000 new patients. Some of them have patterns no expert thought of. An expert system can't discover those patterns — you have to notice them yourself and write more rules.
+
+<Callout type="info" title="The knowledge bottleneck">
+Getting rules out of an expert's head and into code is incredibly slow and expensive. Experts often can't explain their own reasoning — they just "know." Try asking a native speaker to list all the grammar rules they follow. That's the knowledge bottleneck.
+</Callout>
+
+## The real lesson
+
+Expert systems aren't bad. They're actually great when:
+- The domain is small and well-defined
+- Rules rarely change
+- You need to explain exactly why a decision was made
+
+Your linter is an expert system. Your form validation is an expert system. Tax software is an expert system. These all work because the rules are finite and knowable.
+
+But for messy, complex, real-world problems — recognizing faces, understanding language, predicting what a customer wants — you can't write enough rules. You need a different approach entirely.
+
+## The breakthrough idea
+
+What if, instead of a person writing rules, the computer could *figure out the rules itself* by looking at examples?
+
+Show it 10,000 emails labeled "spam" or "not spam." Let it find the patterns. That's machine learning — and it's what the next section is all about.
+
+<Callout type="tip" title="Expert systems are still everywhere">
+Every time you write `if (user.role === 'admin')`, you're writing a rule-based system. The difference with ML: instead of you defining the rules, the model learns them from data. Modern AI often combines both — hard rules for safety, learned patterns for everything else.
+</Callout>
+
+Next: [From Rules to Data](/machine-learning/from-rules-to-data) — the fundamental shift that changed everything: instead of programming the answer, you program the learning process.

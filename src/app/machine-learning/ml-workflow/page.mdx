@@ -1,0 +1,156 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+You know the algorithms. Now let's talk about the stuff that actually makes or breaks a real ML project: how you test, how you fail, and how you know if your model is actually good.
+
+## The train/test split
+
+Rule number one: **never test on the same data you trained on.**
+
+Why? Because your model might have just *memorized* the training data instead of learning the pattern. You need to test on data it's never seen.
+
+<CodeBlock language="python" title="Always split your data">
+{`from sklearn.model_selection import train_test_split
+
+# Hold out 20% for testing
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train only on training data
+model.fit(X_train, y_train)
+
+# Test on data the model has never seen
+score = model.score(X_test, y_test)`}
+</CodeBlock>
+
+<WebDevAnalogy webDev="Staging environment" ai="Test set">
+You wouldn't test your app only in development. You deploy to staging — an environment the code hasn't been tuned for — to see if it actually works. A test set is your staging environment for ML.
+</WebDevAnalogy>
+
+## Overfitting: the memorizer
+
+Overfitting is the most common ML mistake. It's when your model learns the **noise** instead of the **pattern**.
+
+Think of a student who memorizes every practice test answer word-for-word. They ace the practice tests. But on the real exam, with slightly different questions, they fail.
+
+An overfit model has perfect accuracy on training data and terrible accuracy on test data. It memorized instead of learned.
+
+Signs of overfitting:
+- Training accuracy: 99%. Test accuracy: 60%. That gap is the problem.
+- The model is too complex for the amount of data you have
+- You trained for too long
+
+Fixes:
+- **More data.** The best medicine.
+- **Simpler model.** Fewer parameters, shallower trees.
+- **Regularization.** A penalty for complexity — forces the model to keep things simple.
+- **Early stopping.** Stop training when test performance stops improving.
+
+## Underfitting: the opposite problem
+
+A model that's too simple can't capture the pattern at all. A straight line through data that's clearly curved. Training accuracy: 55%. Test accuracy: 53%. Both bad.
+
+Fix: use a more complex model, add features, or train longer.
+
+<Callout type="info" title="The sweet spot">
+You want the model that's complex enough to capture the real pattern but simple enough not to memorize the noise. This balance is the central challenge of ML.
+</Callout>
+
+## Evaluation: accuracy isn't enough
+
+Say you're building a spam filter. 99% of emails are legit, 1% are spam. A model that always says "not spam" is 99% accurate. And completely useless.
+
+You need better metrics:
+
+**Precision** — "When it says spam, how often is it right?"
+If precision is low, you're marking real emails as spam. Your users are angry.
+
+**Recall** — "Of all actual spam, how much did it catch?"
+If recall is low, spam is getting through. Your users are annoyed.
+
+**F1 score** — the balance between precision and recall. One number that captures both.
+
+<CodeBlock language="python" title="Beyond accuracy">
+{`from sklearn.metrics import classification_report
+
+predictions = model.predict(X_test)
+print(classification_report(y_test, predictions))
+
+#               precision  recall  f1-score
+# not_spam        0.99      0.97     0.98
+# spam            0.85      0.92     0.88`}
+</CodeBlock>
+
+Which metric matters most depends on the problem:
+- **Medical diagnosis**: recall matters more (don't miss sick people)
+- **Spam filter**: precision matters more (don't lose real emails)
+- **Most cases**: F1 gives a good overall picture
+
+## The complete workflow
+
+Here's the whole thing, end to end:
+
+<CodeBlock language="python" title="Complete ML pipeline">
+{`from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.datasets import load_wine
+
+# 1. Load data
+data = load_wine()
+X, y = data.data, data.target
+
+# 2. Split: 80% train, 20% test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# 3. Train
+model = RandomForestClassifier(n_estimators=100)
+model.fit(X_train, y_train)
+
+# 4. Evaluate
+predictions = model.predict(X_test)
+print(classification_report(y_test, predictions))
+
+# 5. Use it
+new_wine = [[13.0, 2.0, 2.5, 20, 100, 2.5, 2.5, 0.3, 1.5, 5.0, 1.0, 3.0, 1000]]
+print(f"Predicted class: {model.predict(new_wine)[0]}")`}
+</CodeBlock>
+
+Load → split → train → evaluate → predict. That's the pattern. Every ML project follows this loop.
+
+## Cross-validation
+
+One train/test split might get lucky or unlucky. **Cross-validation** runs the experiment multiple times with different splits:
+
+1. Split data into 5 chunks
+2. Train on 4 chunks, test on 1
+3. Repeat 5 times, each time holding out a different chunk
+4. Average the scores
+
+This gives you a much more reliable estimate of how your model will perform in the real world.
+
+<CodeBlock language="python" title="5-fold cross-validation">
+{`from sklearn.model_selection import cross_val_score
+
+scores = cross_val_score(model, X, y, cv=5)
+print(f"Accuracy: {scores.mean():.2f} ± {scores.std():.2f}")
+# Accuracy: 0.96 ± 0.03`}
+</CodeBlock>
+
+## A note on reinforcement learning
+
+There's a third paradigm we haven't covered much: **reinforcement learning** (RL). Instead of labeled examples, the model gets rewards and punishments.
+
+Think of training a dog. You don't show it 10,000 examples of "sit." You just reward it when it sits and it figures it out through trial and error.
+
+RL is how game-playing AIs work (AlphaGo, OpenAI Five), how robots learn to walk, and how LLMs get fine-tuned with human feedback (RLHF — we'll see this later).
+
+It's a fascinating area, but it needs its own course. For now, just know it exists and that it's the third major ML paradigm alongside supervised and unsupervised.
+
+## Summary
+
+The ML workflow is: split your data, train on the training set, evaluate on the test set, and choose your metrics wisely. Watch out for overfitting (memorizing instead of learning) and pick evaluation metrics that match your actual problem. This workflow — train, evaluate, iterate — carries through everything from simple classifiers to billion-parameter LLMs.
+
+Next: [The Perceptron](/neural-networks/the-perceptron) — the simplest neural network, and the building block of everything that follows.

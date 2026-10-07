@@ -1,0 +1,71 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Here's the entire idea behind image generation: take a photo, add noise to it step by step until it's pure static. Then train a model to reverse the process — to take static and remove the noise step by step until an image appears.
+
+That's it. That's Stable Diffusion, DALL-E, Midjourney — all of them.
+
+## The forward process: destroying images
+
+Start with a clear photo of a cat. Add a tiny bit of random noise — the image gets slightly grainy. Add more noise — it gets grainier. Keep going, hundreds of steps, until there's nothing left but pure random static.
+
+This is easy. You don't need AI for this. It's just adding random numbers to pixels.
+
+<WebDevAnalogy webDev="Applying a blur filter repeatedly until the image is unrecognizable" ai="Adding gaussian noise until the image is pure static">
+Imagine `filter: blur(1px)` applied 500 times. At step 1, you can still see the image. At step 500, it's just colored mush. The diffusion "forward process" is like this but with noise instead of blur.
+</WebDevAnalogy>
+
+## The reverse process: creating images
+
+Now the magic. Train a neural network to look at a noisy image and predict what the *slightly less noisy* version looks like.
+
+Show it the image at noise step 200 and train it to output what step 199 looks like. Show it step 50, train it to output step 49. Do this for millions of images, at every noise level.
+
+Once trained, you can start with pure random static and ask the model: "What does one step less noisy look like?" Then take that result and ask again. And again. After a few dozen steps, an image emerges from nothing.
+
+## Where text comes in: CLIP
+
+So far we can generate random images from noise. But we want to generate *specific* images — "a cat wearing sunglasses on a beach."
+
+This is where **CLIP** comes in. CLIP is a separate model that understands both images and text. It was trained on millions of image-caption pairs from the internet, so it knows that the text "a dog" corresponds to images of dogs.
+
+During image generation, CLIP guides each denoising step. At every step, it checks: "Does this partially-denoised image match the text description?" If not, it nudges the denoising in a direction that better matches.
+
+<Callout type="info" title="The text doesn't create the image">
+The diffusion model creates the image. The text prompt, through CLIP, just steers the denoising in the right direction. Think of the text as a compass, not a paintbrush.
+</Callout>
+
+## Latent space: why it's fast
+
+Early diffusion models worked directly on pixels. A 512×512 image has 786,432 values (512 × 512 × 3 color channels). Running the denoising network on that many values, dozens of times, is slow.
+
+**Stable Diffusion** solved this with a trick: compress the image first. An autoencoder (from the previous chapter) shrinks the image into a much smaller "latent" representation — maybe 64×64×4 instead of 512×512×3. That's 16,384 values instead of 786,432.
+
+The diffusion model does all its work in this compressed latent space. Only at the very end does it decode back to full-resolution pixels. Same quality, way faster.
+
+<WebDevAnalogy webDev="Working with thumbnails, then upscaling the final result" ai="Diffusing in latent space, then decoding to full resolution">
+It's like editing a compressed image and only exporting to full resolution at the end. You do all the work on the small version because it's faster, then blow it up.
+</WebDevAnalogy>
+
+## The controls
+
+When you use an image generator, you're adjusting a few key parameters:
+
+**Guidance scale** (CFG) — how closely to follow the text prompt. Low values (1-5) give the model creative freedom. High values (7-15) make it stick closely to your description. Too high and the image looks oversaturated and weird.
+
+**Steps** — how many denoising steps to take. More steps = more refined image, but slower. Most models look good at 20-30 steps. Going to 100 rarely helps.
+
+**Seed** — the random starting noise. Same seed + same prompt + same settings = same image every time. Change the seed, get a different image. This is how you explore variations.
+
+**Negative prompts** — what you *don't* want. "blurry, low quality, extra fingers" tells CLIP to steer away from these features at each step.
+
+## How upscaling and inpainting work
+
+**Upscaling**: run a separate diffusion model that takes a low-res image and adds plausible high-frequency details (textures, fine lines) while denoising, producing a higher-resolution version.
+
+**Inpainting**: mask out part of an image, add noise only to that region, and run the denoising process on just the masked area — guided by the surrounding image context and an optional text prompt. The model fills in the masked area to blend seamlessly.
+
+## Summary
+
+Diffusion models work by learning to reverse a noise-adding process. Training: add noise to images, teach a network to undo one step of noise. Generation: start from random noise, denoise step by step. Text prompts steer the process through CLIP. Stable Diffusion does this in compressed latent space to make it fast. The user controls guidance, steps, and seed.
+
+Next: [VAEs & Multimodal Models](/generative-ai/vaes-multimodal) — organized latent spaces and the convergence of text, image, and audio.

@@ -1,0 +1,145 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+One agent is useful. But what if you could have a team?
+
+Instead of one agent that writes code, reviews it, and tests it, you split those into three specialists. One writes. One reviews. One tests. An orchestrator decides who does what and when.
+
+Sound familiar? It should.
+
+<WebDevAnalogy webDev="Microservices architecture" ai="Multi-agent systems">
+Each service does one thing well and communicates through defined interfaces. A monolith (one agent doing everything) works until it doesn't. Specialized services (agents) scale better — but coordination is harder.
+</WebDevAnalogy>
+
+## Why multiple agents?
+
+A single agent running a long task accumulates context — tool results, intermediate thinking, dead ends. Eventually the context window fills up, and performance degrades. The model literally starts forgetting the beginning of the conversation.
+
+Specialized agents solve this. Each one gets a focused task, a clean context, and the specific tools it needs. The code-writing agent doesn't need the testing tools. The reviewer doesn't need the file-editing tools.
+
+It's the same reason you wouldn't give every developer in your team admin access to production.
+
+## Delegation patterns
+
+There are three main ways to organize multiple agents:
+
+### Sequential (pipeline)
+
+One agent finishes, hands off to the next.
+
+<CodeBlock language="text" title="Sequential delegation">
+{`Orchestrator → Writer: "Write the function"
+Writer → Orchestrator: [code]
+Orchestrator → Reviewer: "Review this code"
+Reviewer → Orchestrator: [feedback]
+Orchestrator → Writer: "Fix these issues"
+Writer → Orchestrator: [updated code]
+Orchestrator → Tester: "Write tests for this"
+Tester → Orchestrator: [tests + results]`}
+</CodeBlock>
+
+Simple, predictable, but slow. Each agent waits for the previous one to finish.
+
+### Parallel (fan-out)
+
+The orchestrator dispatches to multiple agents simultaneously.
+
+<CodeBlock language="text" title="Parallel delegation">
+{`Orchestrator → [
+  Agent A: "Review for bugs"
+  Agent B: "Review for performance"
+  Agent C: "Review for security"
+]
+All three report back → Orchestrator merges findings`}
+</CodeBlock>
+
+Faster, but you need to handle conflicting feedback and merge results.
+
+### Hierarchical (manager/worker)
+
+Like a real org chart. A manager agent breaks the task into subtasks and delegates to worker agents. Workers might delegate further.
+
+<CodeBlock language="text" title="Hierarchical delegation">
+{`Manager: "Build a todo app"
+├── Frontend Agent: "Build the UI"
+│   ├── Component Agent: "Create TodoList component"
+│   └── Style Agent: "Add CSS"
+├── Backend Agent: "Build the API"
+│   ├── Route Agent: "Define endpoints"
+│   └── DB Agent: "Set up schema"
+└── Test Agent: "Write integration tests"`}
+</CodeBlock>
+
+Powerful for big tasks, but complex. More agents = more chances for miscommunication.
+
+## How agents communicate
+
+Agents talk through structured messages. The orchestrator formats requests and parses responses. There's no magic — it's just function calls and JSON.
+
+<CodeBlock language="javascript" title="Agent communication">
+{`async function orchestrate(task) {
+  // Step 1: Plan
+  const plan = await plannerAgent.run(
+    \`Break this task into subtasks: \${task}\`
+  );
+
+  // Step 2: Execute each subtask
+  const results = await Promise.all(
+    plan.subtasks.map(subtask =>
+      workerAgent.run(subtask.description)
+    )
+  );
+
+  // Step 3: Combine results
+  return await mergerAgent.run(
+    \`Combine these results into a final output: \${JSON.stringify(results)}\`
+  );
+}`}
+</CodeBlock>
+
+<Callout type="warning" title="The telephone game">
+Every time you pass information between agents, something can get lost or distorted. The orchestrator summarizes the task, the worker interprets the summary, the reviewer reads the output without full context. Keep communication explicit and structured — plain language summaries lose information fast.
+</Callout>
+
+## Real-world examples
+
+**Claude Code's workflows**: When you ask Claude Code to make a complex change, it can fan out multiple agents — one to research the codebase, one to write code, one to verify the changes. Each agent works in parallel with its own context.
+
+**Code review systems**: One agent scans for correctness bugs, another for performance issues, another for security vulnerabilities. Different prompts, different expertise, same codebase.
+
+**Content pipelines**: A researcher agent gathers information, a writer agent creates content, an editor agent polishes it. Each specializes in one part of the workflow.
+
+## The trade-offs
+
+More agents sounds better, but it comes with real costs:
+
+| More agents | Fewer agents |
+|---|---|
+| Better focus per task | Simpler architecture |
+| Parallel execution | No coordination overhead |
+| Isolated failures | Shared context (can be good) |
+| Higher token cost | Lower token cost |
+| Communication overhead | No telephone game |
+
+The rule of thumb: **start with one agent. Add more only when one agent demonstrably can't handle the task.** Usually that's when the context window fills up, or when you need truly parallel work.
+
+<Callout type="tip" title="The microservices lesson applies">
+The industry learned this with microservices too. Everyone split their monolith into 50 services and then spent years dealing with distributed systems problems. Start with the monolith. Split when you have to.
+</Callout>
+
+## Building your own
+
+If you want to try multi-agent systems, start small:
+
+1. Build a single agent that works well for your task
+2. Identify where it struggles (context too long? too many different skills needed?)
+3. Split that specific bottleneck into two agents
+4. Add an orchestrator to coordinate them
+5. Stop there. Seriously.
+
+The best multi-agent systems are the simplest ones that solve the actual problem.
+
+## Summary
+
+Multi-agent systems split complex tasks among specialized agents — writer, reviewer, tester — coordinated by an orchestrator. They work in sequential, parallel, or hierarchical patterns. The benefit is focus and parallelism. The cost is complexity, token usage, and information loss between agents. Start with one agent; add more only when you hit a real limitation.
+
+Next: [Responsible Agents](/agentic-ai/responsible-agents) — the guardrails, governance, and safety layers every production agent needs.

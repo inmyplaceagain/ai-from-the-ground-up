@@ -1,0 +1,112 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+RNNs forget. That's their core problem. The hidden state gets overwritten at every step, and old information fades away.
+
+**Long Short-Term Memory (LSTM)** networks fix this by adding a separate, protected memory lane — and **gates** that control what goes in, what stays, and what comes out.
+
+## The key insight: a cell state
+
+An LSTM has two things passing from step to step instead of one:
+
+1. **Hidden state** — the short-term working memory (same as a regular RNN)
+2. **Cell state** — the long-term memory. This is the new part.
+
+The cell state runs along the top of the network like a conveyor belt. Information can flow along it mostly unchanged. The network can add things to it or remove things from it, but only through carefully controlled **gates**.
+
+<WebDevAnalogy webDev="Redux store" ai="LSTM cell state">
+The cell state is like a Redux store. Components (gates) can read from it, dispatch updates to it, or leave it unchanged. The store persists across renders (time steps), and each component decides independently what to change. The hidden state is like derived props — computed from the store for the current render.
+</WebDevAnalogy>
+
+## Three gates
+
+Each gate is a small neural network that outputs values between 0 and 1 (using sigmoid). A value of 0 means "block everything." A value of 1 means "let everything through."
+
+### Forget gate: "what should I throw away?"
+
+Looks at the current input and the previous hidden state. Outputs a number between 0 and 1 for each slot in the cell state. 1 = keep this memory. 0 = erase it.
+
+Reading a story and the subject changes from "the dog" to "the cat"? The forget gate erases the dog-related info.
+
+### Input gate: "what new info should I store?"
+
+Decides which new information to add to the cell state. Two parts:
+- A sigmoid decides WHICH values to update (0 or 1)
+- A tanh creates the new candidate values (-1 to 1)
+
+Together: "store this new fact in these specific memory slots."
+
+### Output gate: "what should I say right now?"
+
+Not everything in memory is relevant to the current moment. The output gate filters the cell state to produce the hidden state — the network's "answer" for this time step.
+
+Reading "The cat, who was very hungry, ___" — the output gate emphasizes "cat" and "hungry" because those are relevant for predicting the next word.
+
+## Why this solves the memory problem
+
+The cell state is the secret. In a regular RNN, the hidden state is fully rewritten at every step. In an LSTM, the cell state is only **modified** — bits are erased or added, but the rest stays intact.
+
+During backpropagation, the gradient flows through the cell state almost unchanged. There's no repeated multiplication by weight matrices that causes it to vanish. The forget gate just multiplies by a value close to 1 for important memories, so the signal survives.
+
+<Callout type="info" title="The gradient highway">
+The cell state acts like a highway for gradients. Instead of passing through dozens of nonlinear transformations (which shrink the gradient), information can travel many time steps with minimal loss. This is the same insight behind residual connections in deep networks.
+</Callout>
+
+## In code
+
+<CodeBlock language="python" title="LSTM in PyTorch">
+{`import torch.nn as nn
+
+lstm = nn.LSTM(
+    input_size=100,
+    hidden_size=256,
+    num_layers=2,
+    batch_first=True
+)
+
+# Process a sequence - note: TWO states returned
+outputs, (final_hidden, final_cell) = lstm(word_vectors)`}
+</CodeBlock>
+
+Notice the difference from the RNN: you get back both `final_hidden` and `final_cell`. The cell state carries the long-term memory.
+
+## GRUs: the simpler version
+
+**Gated Recurrent Units (GRUs)** simplify the LSTM idea. Instead of three gates, they use two:
+
+- **Reset gate**: decides how much of the previous state to forget (combines forget + input)
+- **Update gate**: decides how much of the new state to keep vs. the old (combines input + output)
+
+GRUs also merge the cell state and hidden state into one. Fewer parameters, faster training, and they perform almost as well as LSTMs on most tasks.
+
+<CodeBlock language="python" title="GRU in PyTorch">
+{`gru = nn.GRU(
+    input_size=100,
+    hidden_size=256,
+    num_layers=2,
+    batch_first=True
+)
+
+# Same interface, but only one state
+outputs, final_hidden = gru(word_vectors)`}
+</CodeBlock>
+
+## The rise and fall
+
+LSTMs and GRUs dominated sequence processing from about 2014 to 2017. They powered:
+
+- Machine translation (seq2seq models)
+- Text generation
+- Speech recognition
+- Sentiment analysis
+
+Then the Transformer arrived and made them mostly obsolete for NLP. But LSTMs are still used in time series forecasting, audio processing, and anywhere the sequences are short enough that the simpler architecture wins.
+
+<Callout type="tip" title="Legacy worth knowing">
+You'll still see LSTMs in production codebases and research papers. Understanding gates — the idea that a network can learn WHEN to remember, WHEN to forget, and WHEN to output — is foundational. Transformers use a different mechanism (attention), but the problem they solve is the same: how to connect distant parts of a sequence.
+</Callout>
+
+## Summary
+
+LSTMs solve the RNN memory problem by adding a protected cell state and three gates that control information flow. The forget gate erases irrelevant memories, the input gate stores new information, and the output gate decides what to share. GRUs simplify this to two gates and work almost as well. Both were revolutionary — until the Transformer changed everything.
+
+Next: [The Transformer](/deep-learning/the-transformer) — the architecture that threw away recurrence entirely and powers every modern AI system.

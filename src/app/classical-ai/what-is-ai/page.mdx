@@ -1,0 +1,51 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+"Artificial Intelligence" means something different every decade. Here's the shortest history you'll ever read — just enough to understand where everything came from and why.
+
+## The moving goalpost
+
+AI has a funny pattern: once a computer can do something, people stop calling it AI. Chess? That was AI in the 1950s. Spam filters? AI in the 2000s. Now they're just... software.
+
+The constant definition: **making computers do things that seem to require intelligence**. What counts as "intelligence" keeps changing.
+
+## The 30-second timeline
+
+**1950s–60s: Logic and search.** Can a computer prove theorems? Play chess? Solve puzzles? The idea: intelligence is reasoning, so write programs that reason. These worked for simple problems but choked on anything messy or ambiguous.
+
+**1970s–80s: Expert systems.** Can we capture what a human expert knows as a set of rules? "If the patient has fever AND cough, consider flu." This worked well in narrow domains but fell apart at scale. You couldn't write enough rules.
+
+**1990s–2000s: Machine learning.** Instead of writing rules by hand, let the computer *learn* them from data. Show it 10,000 emails labeled "spam" or "not spam," and it figures out the patterns. This was the big shift.
+
+**2010s: Deep learning.** Machine learning with neural networks — lots of layers, lots of data, lots of compute. Image recognition, speech-to-text, translation. Suddenly computers could do things that felt genuinely intelligent.
+
+**2020s: Generative AI and agents.** Models that don't just classify — they create. They write, draw, code, and reason. And now they use tools, make plans, and work in teams.
+
+## What this means for you
+
+Each era didn't replace the last — it built on it. The expert system idea (rules + knowledge) is alive in every RAG pipeline. Machine learning powers every recommendation engine. Deep learning runs every LLM.
+
+<Callout type="info" title="The pyramid">
+This course follows the same path: classical AI → machine learning → neural networks → deep learning → generative AI → agents. Each layer builds on the one below. Skip a layer and the next one feels like magic instead of engineering.
+</Callout>
+
+## Two flavors of AI
+
+You'll hear these terms thrown around:
+
+**Narrow AI** (what we have today) — good at one specific task. A model that classifies images can't write poetry. ChatGPT can write poetry but can't drive a car. Every AI system today is narrow.
+
+**General AI** (what researchers are working toward) — a system that can do any intellectual task a human can. We're not there yet. Whether current approaches will get us there is an open debate.
+
+For this course, we're focused on narrow AI — the stuff you can build and ship today.
+
+<WebDevAnalogy webDev="Frameworks evolve (jQuery → React → Next.js)" ai="AI evolves (rules → ML → deep learning → agents)">
+Just like web frameworks, each generation of AI solves the previous generation's biggest pain point. jQuery couldn't manage state → React. Hand-written rules can't learn → ML. Shallow models can't see patterns in raw data → deep learning.
+</WebDevAnalogy>
+
+## Why "from the ground up"?
+
+When you understand each layer, the latest advances stop being magic. GPT isn't magic — it's a transformer (a specific architecture) trained on text (machine learning) using neural networks (layers of simple math) that generates tokens one at a time (a learned process).
+
+Every piece of that sentence will make sense by the time you finish this course.
+
+Next: [Expert Systems](/classical-ai/expert-systems) — the first real attempt at practical AI, and why it hit a wall that only machine learning could fix.

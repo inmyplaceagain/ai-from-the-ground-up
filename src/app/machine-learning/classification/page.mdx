@@ -1,0 +1,141 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Regression predicts a number. Classification predicts a **category**.
+
+Spam or not spam. Cat or dog. Approved or denied. Benign or malignant. Instead of "what number?" it's "which bucket?"
+
+## From line to curve
+
+Here's the trick. You already know regression draws a line. Classification needs a tiny twist: instead of predicting a number, squish the output into a range between 0 and 1. Now it's a **probability**.
+
+The squishing function is called a **sigmoid**. It takes any number and maps it to 0–1:
+
+- Big positive number → close to 1 (confident yes)
+- Big negative number → close to 0 (confident no)
+- Zero → 0.5 (unsure)
+
+<CodeBlock language="python" title="Sigmoid: any number → probability">
+{`import math
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+sigmoid(10)   # 0.9999 — very confident yes
+sigmoid(-10)  # 0.0001 — very confident no
+sigmoid(0)    # 0.5    — coin flip`}
+</CodeBlock>
+
+This is called **logistic regression**. Don't let the name fool you — it's a classifier, not a regressor. It just uses regression math under the hood.
+
+<WebDevAnalogy webDev="if (score > 0.5) approve()" ai="Logistic regression threshold">
+You already do this. A feature flag with a rollout percentage, a spam score threshold, a credit scoring cutoff — you compute a number and threshold it. Logistic regression just learns the scoring function from data.
+</WebDevAnalogy>
+
+## Decision trees
+
+Logistic regression draws a line. But sometimes the pattern isn't a line — it's more like a flowchart.
+
+A **decision tree** is literally a flowchart that the computer builds from data:
+
+```
+Is income > $50k?
+├── Yes: Is debt < $10k?
+│   ├── Yes: APPROVE ✓
+│   └── No: DENY ✗
+└── No: Is employed > 2 years?
+    ├── Yes: APPROVE ✓
+    └── No: DENY ✗
+```
+
+The model looks at your data and figures out which questions to ask, in what order, and where to split. It picks the question that best separates the categories at each step.
+
+<CodeBlock language="python" title="Decision tree in 5 lines">
+{`from sklearn.tree import DecisionTreeClassifier
+
+# Features: [income, debt, years_employed]
+X = [[60000, 5000, 3], [30000, 15000, 1], [80000, 2000, 5], [25000, 20000, 0]]
+y = ["approve", "deny", "approve", "deny"]
+
+model = DecisionTreeClassifier()
+model.fit(X, y)
+model.predict([[45000, 8000, 2]])  # ?`}
+</CodeBlock>
+
+<Callout type="tip" title="Why decision trees are popular">
+You can actually read them. Unlike most ML models, a decision tree tells you exactly why it made a decision. "I approved this loan because income > $50k AND debt < $10k." That explainability matters in regulated industries.
+</Callout>
+
+## K-nearest neighbors
+
+This one is beautifully simple. No training at all. When you get a new data point, just:
+
+1. Look at the **k** most similar items in your training data
+2. Whatever category the majority belongs to — that's your answer
+
+That's it. If 3 out of 5 nearest neighbors are cats, it's a cat.
+
+<CodeBlock language="python" title="KNN: vote by neighbors">
+{`from sklearn.neighbors import KNeighborsClassifier
+
+# Features: [weight_kg, height_cm]
+X = [[4, 25], [5, 30], [40, 60], [45, 65]]
+y = ["cat", "cat", "dog", "dog"]
+
+model = KNeighborsClassifier(n_neighbors=3)
+model.fit(X, y)
+model.predict([[6, 28]])  # "cat" — nearest neighbors are cats`}
+</CodeBlock>
+
+The catch? It gets slow with lots of data because it has to compare against *every* training example. And "similar" depends on how you define distance — which gets weird in high dimensions.
+
+## More than two categories
+
+Everything above works for yes/no decisions. What about cat vs dog vs bird vs fish?
+
+Two approaches:
+
+**One-vs-rest**: Train one classifier per category. "Is it a cat?" "Is it a dog?" "Is it a bird?" Pick the one with highest confidence.
+
+**Softmax**: Like sigmoid, but for multiple categories. Instead of one probability, you get a probability for each class, and they all add up to 1:
+
+```
+cat:  0.75
+dog:  0.20
+bird: 0.04
+fish: 0.01
+```
+
+This is how most neural network classifiers work — you'll see softmax again.
+
+## They all draw boundaries
+
+Here's the key insight: every classifier is drawing **boundaries** between categories in your data.
+
+- Logistic regression draws a straight line
+- Decision trees draw axis-aligned rectangles
+- KNN draws wobbly boundaries based on local neighborhoods
+
+Neural networks? They draw *any* shape boundary. That's why they're so powerful. But the idea is the same — you're always just splitting the space into regions.
+
+## The code, all together
+
+<CodeBlock language="python" title="Three classifiers, same data">
+{`from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+# Same data, three different approaches
+X = [[1, 2], [2, 1], [3, 3], [6, 5], [7, 7], [8, 6]]
+y = [0, 0, 0, 1, 1, 1]  # two classes
+
+for Model in [LogisticRegression, DecisionTreeClassifier, KNeighborsClassifier]:
+    model = Model()
+    model.fit(X, y)
+    print(f"{Model.__name__}: {model.predict([[5, 4]])[0]}")`}
+</CodeBlock>
+
+## Summary
+
+Classification predicts categories by drawing boundaries between groups. Logistic regression draws a line, decision trees draw a flowchart, KNN asks the neighbors. They all work — each with different tradeoffs. Neural networks draw better boundaries because they can learn any shape, which is why they dominate today.
+
+Next: [Unsupervised Learning](/machine-learning/unsupervised) — what happens when you don't have labels at all.

@@ -1,0 +1,112 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+import { Perceptron } from "@/components/interactive/perceptron";
+
+Every neural network — the ones writing your code, generating images, translating languages — is made of one simple building block, repeated millions of times.
+
+That building block is called a **perceptron**. And it's just a function.
+
+## It's a function
+
+Seriously. A perceptron takes some numbers in, does a tiny bit of math, and returns either a 0 or a 1. Yes or no.
+
+Here's the whole thing in Python:
+
+<CodeBlock language="python" title="That's it">
+{`def perceptron(inputs, weights, bias):
+    total = sum(x * w for x, w in zip(inputs, weights)) + bias
+    return 1 if total >= 0 else 0`}
+</CodeBlock>
+
+Three lines. Let's break down what they actually do.
+
+## Inputs and weights
+
+Imagine you're deciding whether to go outside. You check three things:
+
+- Is it sunny? (input 1)
+- Is it warm? (input 2)  
+- Is it a weekend? (input 3)
+
+But these things don't matter equally to you. Maybe you care a lot about warmth, a little about sun, and the weekend doesn't matter much. That's what **weights** are — how much each input matters.
+
+The perceptron multiplies each input by its weight, adds them up, and checks: is the total above some threshold? If yes → 1 (go outside). If no → 0 (stay home).
+
+The **bias** is just the threshold, flipped. A negative bias means "I need more convincing to say yes." A positive bias means "I'm already leaning yes."
+
+<WebDevAnalogy webDev="if (score > threshold)" ai="Perceptron">
+A perceptron is just a weighted if-statement. You already write these — feature flags with priority scores, spam filters, even CSS specificity is this pattern.
+</WebDevAnalogy>
+
+## A real example: AND gate
+
+Let's make a perceptron that acts like an AND gate — it says 1 only when *both* inputs are 1.
+
+We need weights and a bias such that:
+
+| Inputs | What should happen |
+|--------|-------------------|
+| 0, 0 → | **0** (neither is on) |
+| 0, 1 → | **0** (only one is on) |
+| 1, 0 → | **0** (only one is on) |
+| 1, 1 → | **1** (both are on) |
+
+Try: weights = `[0.5, 0.5]`, bias = `-0.7`
+
+- (0, 0): `0.5×0 + 0.5×0 - 0.7 = -0.7` → **0** ✓
+- (0, 1): `0.5×0 + 0.5×1 - 0.7 = -0.2` → **0** ✓  
+- (1, 0): `0.5×1 + 0.5×0 - 0.7 = -0.2` → **0** ✓
+- (1, 1): `0.5×1 + 0.5×1 - 0.7 = 0.3` → **1** ✓
+
+The bias of -0.7 means "I need at least 0.7 of evidence to say yes." Each input can contribute 0.5, so you need both.
+
+## The line
+
+Here's the key insight. If you plot the inputs on a 2D chart, the perceptron draws a **straight line** through it. Everything above the line → 1. Everything below → 0.
+
+The weights control the angle of the line. The bias shifts it. That's all a perceptron does: it positions a line to separate two groups.
+
+## Learning
+
+We picked those weights by hand. Obviously that doesn't scale. So how does a perceptron find the right weights by itself?
+
+Simple: start with random weights, show it examples, and every time it gets one wrong, nudge the weights a little bit in the right direction.
+
+<CodeBlock language="python" title="The learning rule">
+{`# If the perceptron got it wrong:
+error = expected - predicted   # either +1 or -1
+weights += learning_rate * error * inputs
+bias += learning_rate * error`}
+</CodeBlock>
+
+That's the whole learning algorithm. If it predicted 0 but should have said 1, it increases the weights. If it predicted 1 but should have said 0, it decreases them. The learning rate controls how big each nudge is.
+
+Do this over all the training examples, repeat a few times, and the line settles into the right position.
+
+## Try it
+
+Drag the sliders to move the line yourself. Switch between AND, OR, and XOR. Hit **Train** to watch the perceptron learn.
+
+<InteractiveContainer
+  title="Perceptron Playground"
+  caption="Blue = class 1, grey = class 0. The gold line is the decision boundary. Red outlines = misclassified. Try training XOR — it won't work."
+>
+  <Perceptron />
+</InteractiveContainer>
+
+## The catch
+
+Try XOR. The perceptron can't solve it. No matter where you put the line, at least one point is on the wrong side.
+
+XOR needs two classes that are diagonal from each other — and you can't separate diagonals with a single straight line. This is called being **not linearly separable**.
+
+In 1969 this was proven mathematically, and it nearly killed neural network research for a decade.
+
+<Callout type="tip" title="The fix is obvious in hindsight">
+Stack multiple perceptrons into layers. The first layer draws multiple lines, the second layer combines them. Suddenly you can separate anything. That's what the next chapter is about.
+</Callout>
+
+## Summary
+
+A perceptron is a function that draws a straight line to separate two groups. It learns by adjusting its weights whenever it makes a mistake. It can't solve everything — but stack enough of them together and you get a neural network.
+
+Next: [Activation Functions](/neural-networks/activation-functions) — why the yes/no step function isn't enough, and what happens when you let the output be a gradient instead.

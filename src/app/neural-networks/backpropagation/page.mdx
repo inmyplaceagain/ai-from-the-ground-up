@@ -1,0 +1,116 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+The perceptron learning rule was simple: if wrong, nudge the weights. But that only works for a single layer. When you have a network with hidden layers, a new question appears: **which weights caused the mistake?**
+
+The output was wrong, sure — but was it because of the weights in layer 3? Layer 2? Layer 1? Probably all of them, but by how much?
+
+**Backpropagation** answers this question. It's the algorithm that makes deep learning possible.
+
+## The idea: work backwards
+
+Imagine you're debugging a pipeline with three middleware functions. The response is wrong. You'd start at the end — "is the final handler returning the right thing?" — and work backwards through each middleware until you find where things went sideways.
+
+Backpropagation does exactly this:
+
+1. **Forward pass**: run the input through the network, get a prediction.
+2. **Compute the error**: how far off was the prediction from the correct answer?
+3. **Backward pass**: starting from the output, figure out how much each weight contributed to that error. Work layer by layer, backwards.
+4. **Update weights**: nudge each weight in the direction that reduces the error.
+
+<WebDevAnalogy webDev="Stack trace" ai="Backpropagation">
+When your app crashes, the stack trace shows you exactly which function called which, all the way back to the source of the error. Backpropagation traces the error signal backwards through the layers to find which weights were responsible.
+</WebDevAnalogy>
+
+## Gradient descent: the hill in the fog
+
+Before we go deeper into backpropagation, let's understand **gradient descent** — the strategy it uses to update weights.
+
+Picture this: you're standing on a hill in thick fog. You can't see the bottom, but you can feel the slope under your feet. Your strategy: take a small step in the direction that goes downhill. Repeat. Eventually you reach a valley.
+
+The "hill" is the **loss function** — a measure of how wrong the network is. High = very wrong. Low = pretty good. We want to get to the bottom.
+
+The "slope under your feet" is the **gradient** — it tells you which direction is downhill and how steep it is.
+
+The "step size" is the **learning rate** — how far you move with each update.
+
+<Callout type="warning" title="Learning rate matters">
+Too big → you overshoot the valley and bounce around. Too small → you take forever to get anywhere. Finding the right learning rate is one of the key challenges in training neural networks.
+</Callout>
+
+## How backpropagation computes gradients
+
+The math uses the chain rule from calculus. But you don't need to remember calculus — here's the intuition:
+
+If changing weight W by a tiny amount changes the output by a lot → W has a big gradient → W gets a big update.
+
+If changing weight W barely affects the output → W has a small gradient → W gets a small update.
+
+Backpropagation computes this efficiently by reusing work. It calculates the gradients layer by layer, from output to input. Each layer's gradients build on the layer after it. This is much faster than computing each weight's effect independently.
+
+## The loss function
+
+We need a number that says "how wrong is the network." That's the loss function. Two common ones:
+
+**Mean Squared Error (MSE)** — for regression (predicting numbers):
+
+<CodeBlock language="python" title="MSE">
+{`loss = average of (predicted - actual)² for all examples`}
+</CodeBlock>
+
+**Cross-Entropy** — for classification (predicting categories):
+
+<CodeBlock language="python" title="Cross-Entropy (simplified)">
+{`loss = -average of actual * log(predicted)`}
+</CodeBlock>
+
+The squaring in MSE means big mistakes are punished much more than small ones. A prediction that's off by 10 costs 100 times more than one that's off by 1.
+
+## The training loop
+
+Put it all together and the training loop is surprisingly simple:
+
+<CodeBlock language="python" title="Training in PyTorch">
+{`import torch
+import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Linear(2, 8), nn.ReLU(),
+    nn.Linear(8, 1), nn.Sigmoid()
+)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+loss_fn = nn.BCELoss()
+
+for epoch in range(100):
+    prediction = model(inputs)          # forward pass
+    loss = loss_fn(prediction, targets)  # compute error
+    loss.backward()                      # backward pass (backprop!)
+    optimizer.step()                     # update weights
+    optimizer.zero_grad()                # reset for next round`}
+</CodeBlock>
+
+That's it. `loss.backward()` computes all the gradients for every weight in the entire network. `optimizer.step()` updates them all. PyTorch handles the chain rule, the layer-by-layer propagation, everything.
+
+<Callout type="tip" title="You almost never implement backprop by hand">
+Frameworks like PyTorch and TensorFlow have automatic differentiation built in. You define the forward pass, and the framework figures out the backward pass for you. This is one of the biggest reasons deep learning took off — the hard math is automated.
+</Callout>
+
+## Batches and epochs
+
+In practice you don't update weights after every single example. You use **batches** — groups of examples (32, 64, 256 at a time). This is faster (GPUs love parallel work) and the averaged gradient is smoother.
+
+One pass through the entire training dataset = one **epoch**. You typically train for many epochs — dozens or hundreds — until the loss stops going down.
+
+## The problem with depth
+
+Backpropagation multiplies gradients layer by layer. In deep networks, this multiplication can cause problems:
+
+- **Vanishing gradients**: gradients get smaller and smaller, so early layers barely learn. (This is why ReLU replaced sigmoid in hidden layers.)
+- **Exploding gradients**: gradients get bigger and bigger, making training unstable. (Fixed with gradient clipping — "if the gradient is too big, cap it.")
+
+These are the reasons training deep networks was hard for decades. Modern techniques (ReLU, batch normalization, skip connections) have mostly solved them.
+
+## Summary
+
+Backpropagation trains neural networks by computing how much each weight contributed to the error, working backwards from output to input. Gradient descent uses these gradients to nudge weights in the direction that reduces the error. The learning rate controls how big each nudge is. Modern frameworks do all this math automatically — you just call `loss.backward()`.
+
+Next: [Convolutional Neural Networks](/deep-learning/cnns) — a specialized architecture that learns to "see" by sliding small filters across images.

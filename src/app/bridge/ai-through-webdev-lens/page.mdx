@@ -1,0 +1,51 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+You already know more about AI than you think. Seriously. Most AI concepts map directly to things you use every day as a web developer. Let's prove it.
+
+## Request → Response = Inference
+
+When your app calls an API, it sends data, the server processes it, and sends back a result. An AI model works the same way. You send it inputs (an image, a sentence, some numbers), it runs them through its internal logic, and gives you an output.
+
+That process is called **inference**. It's just a fancy word for "the model processed your input and gave you an answer."
+
+<WebDevAnalogy webDev="fetch('/api/predict', { body: data })" ai="model.predict(data)">
+An API call and a model prediction are the same shape: input goes in, output comes out. The model *is* your server.
+</WebDevAnalogy>
+
+## State Management = Model Memory
+
+React state, Redux, Zustand — they all solve the same problem: remembering things between interactions. AI has the same challenge.
+
+A chatbot needs to remember what you said three messages ago. That's **context**. A model that remembers your preferences over time? That's **memory**. Same problem, same solution patterns: store some state, pass it back in with the next request.
+
+## Database Queries = Retrieval
+
+When your app needs information, it queries a database. AI does the same thing — it's called **retrieval**. The model searches through stored documents to find relevant information before generating a response. You might know this as **RAG** (Retrieval-Augmented Generation). It's literally "search the database first, then answer."
+
+## Middleware Pipeline = Agent Orchestration
+
+Express middleware chains — each function does one thing, passes to the next. AI agents work the same way. One model interprets your request, another searches for data, a third writes the response. Each step feeds into the next.
+
+<WebDevAnalogy webDev="app.use(auth, validate, transform, respond)" ai="plan → search → reason → respond">
+A middleware pipeline and an AI agent pipeline are structurally identical: a chain of specialized steps, each transforming the output of the previous one.
+</WebDevAnalogy>
+
+## Caching = Embeddings
+
+You cache API responses to avoid recomputing things. **Embeddings** serve a similar purpose — they're pre-computed numerical representations of data (text, images, whatever) that make comparison fast. Instead of comparing two paragraphs word by word, you compare two lists of numbers. Same idea as caching a computed result for quick lookup.
+
+## Config = Hyperparameters
+
+Environment variables configure how your app behaves without changing code. In AI, these are called **hyperparameters** — the learning rate, batch size, number of training rounds. They control *how* the model learns, not *what* it learns. Same concept: knobs you tune from outside the core logic.
+
+<Callout type="tip" title="You're halfway there">
+If you've built a web app with an API, state management, a database, middleware, caching, and config files — you've already built the architecture of an AI system. The rest of this course fills in what happens *inside* each of those boxes.
+</Callout>
+
+## One more thing
+
+Here's the real secret: AI engineering is converging with web engineering. Modern AI apps are just web apps with a model behind the API. You deploy them the same way, monitor them the same way, and debug them the same way.
+
+The difference is understanding what happens inside that model. That's what the rest of this course is for.
+
+Next: [Python for JS Devs](/bridge/python-for-js-devs) — learn Python in 10 minutes by comparing it to JavaScript you already know.

@@ -1,0 +1,100 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+A chatbot answers questions. You type something, it types back. That's it.
+
+An **agent** does things. It reads files, searches the web, writes code, runs tests, and decides what to do next — all on its own. Same language model underneath, completely different behavior on top.
+
+The difference comes down to three things: tools, decisions, and loops.
+
+## Tools: letting the model *do* stuff
+
+An LLM by itself can only generate text. It can't check the weather, query a database, or send an email. But you can give it a list of tools — functions it's allowed to call.
+
+The model doesn't actually run the functions. It outputs a structured request: "call `get_weather` with `city: Prague`." Your code sees that, runs the function, and feeds the result back. The model then uses that result to keep going.
+
+<CodeBlock language="javascript" title="Function calling — the basic pattern">
+{`const tools = [
+  {
+    name: "get_weather",
+    description: "Get current weather for a city",
+    parameters: { city: { type: "string" } }
+  }
+];
+
+// The model sees this list and can choose to call a tool
+// instead of just generating text.
+// Your code runs the actual function and sends the result back.`}
+</CodeBlock>
+
+<WebDevAnalogy webDev="Controller calling services" ai="Agent using tools">
+The model is the controller. It decides what needs to happen. The tools are services — database queries, API calls, file operations. The controller never talks to the database directly; it calls a service. Same pattern.
+</WebDevAnalogy>
+
+## Decisions: the model picks what to do next
+
+A chatbot has one move: generate a response. An agent has many moves — call this tool, call that tool, think about the result, call another tool, or just respond.
+
+The model decides which tool to use (if any) based on the conversation so far. You don't hardcode "if the user asks about weather, call get_weather." The model figures that out from the tool descriptions.
+
+This is what makes it an *agent* and not just a script with an LLM in it.
+
+## Loops: try, check, try again
+
+Here's where it gets interesting. A chatbot does one pass: question in, answer out. An agent can loop.
+
+The pattern is called **ReAct** — Reason, Act, Observe:
+
+1. **Reason**: "I need to find the user's order status. I should search the database."
+2. **Act**: Call `search_orders` with the user's ID.
+3. **Observe**: "Found 3 orders. The most recent one is pending."
+4. Back to step 1: "Now I should check the shipping status of that order."
+
+This continues until the agent decides it has enough information to give a final answer — or until you cut it off.
+
+<CodeBlock language="javascript" title="The agent loop">
+{`while (true) {
+  const response = await model.generate({ messages, tools });
+
+  if (response.type === "text") {
+    // Model decided it's done — return the answer
+    return response.text;
+  }
+
+  if (response.type === "tool_call") {
+    // Model wants to use a tool — run it
+    const result = await runTool(response.name, response.args);
+    // Feed the result back and let the model decide what's next
+    messages.push({ role: "tool", content: result });
+  }
+}`}
+</CodeBlock>
+
+That's the entire agent architecture. A while loop, a model call, and a switch statement.
+
+<Callout type="info" title="It's just a loop">
+Every agent framework — LangChain, CrewAI, AutoGPT — is fundamentally this loop with extra features bolted on. Understanding the loop means you can build agents from scratch, or debug any framework when things go wrong.
+</Callout>
+
+## A concrete example
+
+Let's say you're building a customer support agent. You give it three tools:
+
+- `search_orders(customer_id)` — find a customer's orders
+- `get_order_status(order_id)` — check shipping status
+- `create_ticket(subject, body)` — escalate to a human
+
+The customer asks: "Where's my package?"
+
+The agent reasons: "I need their order. Let me search." It calls `search_orders`, gets back an order ID. Then it calls `get_order_status`, finds out it's delayed. It responds to the customer with the status. If the delay is too long, it might call `create_ticket` to escalate — all without you writing any if/else logic for these scenarios.
+
+## The boundaries
+
+Agents aren't magic. They make mistakes. They sometimes call the wrong tool, misinterpret results, or get stuck in loops. The model is still just predicting the next token — it doesn't actually "understand" your system.
+
+That's why every production agent has guardrails: maximum iterations, tool call limits, human approval for dangerous actions. We'll get to those in the [Responsible Agents](/agentic-ai/responsible-agents) chapter.
+
+## Summary
+
+An agent = an LLM + tools + a loop. The model decides what to do, your code executes the tools, and the results feed back into the model. That's the whole thing. Everything else — memory, planning, multi-agent systems — builds on this foundation.
+
+Next: [Memory & Context](/agentic-ai/memory-and-context) — how agents remember things beyond a single conversation.

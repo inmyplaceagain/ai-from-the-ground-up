@@ -1,0 +1,99 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Regular neural networks take a flat list of numbers as input. To feed them an image, you'd flatten every pixel into one long row — a 28×28 image becomes 784 numbers. This throws away all spatial information. The network doesn't know which pixels are next to each other.
+
+**Convolutional Neural Networks (CNNs)** fix this. They're designed to understand images by looking at small regions at a time, just like your eyes do.
+
+## The filter
+
+A CNN doesn't look at the whole image at once. Instead, it slides a small window — called a **filter** or **kernel** — across the image.
+
+A typical filter is 3×3 pixels. It looks at a tiny patch, computes a single number (how much this patch matches the filter's pattern), then slides over one pixel and does it again.
+
+<WebDevAnalogy webDev="CSS box-shadow / blur" ai="Convolution filter">
+A CSS blur filter works by averaging nearby pixels. A CNN filter does something similar — it combines nearby pixels using learned weights. The difference is the CNN learns WHAT combination to look for.
+</WebDevAnalogy>
+
+Think of it like a metal detector at the beach. You sweep it across the sand in overlapping passes. At each position, it tells you "something here" or "nothing here." A CNN filter sweeps across the image, and at each position says "this pattern is here" or "it isn't."
+
+## What filters learn
+
+The network learns filter values during training. But a clear pattern emerges:
+
+- **First layer filters** detect **edges** — vertical lines, horizontal lines, diagonals, color transitions.
+- **Second layer filters** combine edges into **shapes** — corners, circles, textures, curves.
+- **Third layer filters** combine shapes into **objects** — eyes, wheels, letters, fur patterns.
+
+Nobody programs this hierarchy. The network discovers it on its own through backpropagation. Early layers learn simple features because that's what's useful for later layers.
+
+## The math is simple
+
+At each position, the filter multiplies each of its values by the pixel underneath, then sums them up. That's it — it's the same weighted sum as the perceptron, just applied to a 2D patch.
+
+<CodeBlock language="python" title="Convolution (simplified)">
+{`# Slide a 3x3 filter across the image
+for row in range(image_height - 2):
+    for col in range(image_width - 2):
+        patch = image[row:row+3, col:col+3]
+        output[row][col] = sum(patch * filter) + bias`}
+</CodeBlock>
+
+The output is a new 2D grid — called a **feature map** — where bright spots mean "this filter's pattern was found here."
+
+A CNN layer doesn't use just one filter. It uses many — 32, 64, 128 or more. Each filter looks for a different pattern. So one layer might produce 64 feature maps: one for vertical edges, one for horizontal edges, one for corners, and so on.
+
+## Pooling: shrink the map
+
+After convolution, the feature maps are big. **Pooling** shrinks them down.
+
+**Max pooling** is the most common: take a 2×2 region, keep only the largest value. This cuts the size in half in each dimension (a 28×28 map becomes 14×14).
+
+Why does this help?
+
+1. **Smaller = faster.** Less data to process in later layers.
+2. **Translation invariance.** A cat in the top-left looks the same as a cat in the bottom-right. Pooling makes the network care about *whether* a feature exists, not *exactly where* it is.
+
+## A typical CNN
+
+<CodeBlock language="python" title="CNN in PyTorch">
+{`import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Conv2d(1, 32, 3),    # 1 input channel, 32 filters, 3x3
+    nn.ReLU(),
+    nn.MaxPool2d(2),         # 2x2 max pooling
+    nn.Conv2d(32, 64, 3),   # 32 → 64 filters
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Flatten(),            # flatten to 1D
+    nn.Linear(1600, 10),    # classify into 10 categories
+)`}
+</CodeBlock>
+
+Notice the pattern: **Conv → ReLU → Pool**, repeated. Each repetition extracts higher-level features from smaller feature maps. At the end, we flatten everything into a regular dense layer for classification.
+
+## Why CNNs changed everything
+
+Before CNNs, computer vision used hand-designed features — edge detectors, corner detectors, histogram of gradients. Researchers spent years crafting these.
+
+CNNs learn the features automatically. In 2012, a CNN called AlexNet won the ImageNet competition by a huge margin, and the entire field of computer vision pivoted to deep learning overnight.
+
+<Callout type="info" title="Parameter efficiency">
+A dense layer connecting a 28×28 image to 128 neurons needs 28 × 28 × 128 = 100,352 weights. A convolutional layer with 32 filters of 3×3 needs only 32 × 9 = 288 weights — and it works on images of ANY size. This weight sharing is why CNNs are so efficient.
+</Callout>
+
+## Beyond images
+
+CNNs aren't just for photos. They work on anything with spatial structure:
+
+- **Audio**: treat a spectrogram as an image
+- **Text**: slide filters across sequences of word vectors
+- **Game boards**: treat the board state as a grid (this is how AlphaGo works)
+
+The principle is always the same: if nearby elements are related to each other, a CNN can learn to detect those local patterns.
+
+## Summary
+
+CNNs process images by sliding small learned filters across them, detecting patterns at each position. Early layers find edges, later layers combine them into shapes and objects. Pooling shrinks the feature maps and makes the network care about *what's there*, not *where exactly*. This architecture made modern computer vision possible.
+
+Next: [Recurrent Neural Networks](/deep-learning/rnns) — what happens when your data isn't a grid but a sequence, like text or time series.

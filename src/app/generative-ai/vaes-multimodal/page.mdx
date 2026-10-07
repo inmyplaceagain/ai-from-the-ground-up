@@ -1,0 +1,82 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+In the autoencoders chapter, we compressed data into a small "latent" representation and decoded it back. That works great for compression. But the latent space is a mess — there's no structure to it, so you can't use it to *generate* new things.
+
+VAEs fix that.
+
+## VAEs: organized latent space
+
+A **Variational Autoencoder** (VAE) adds one constraint: the latent space must follow a smooth, organized distribution (usually a bell curve).
+
+Instead of encoding an image into a single point, a VAE encodes it into a small *region* — a mean and a variance. During training, it samples a random point from that region and tries to decode it back to the original image.
+
+Why does this matter? Because now the latent space is smooth. Similar inputs end up near each other. And — crucially — you can sample *any* point in the latent space and decode it into something that looks reasonable.
+
+<WebDevAnalogy webDev="A well-organized file system vs a flat dump folder" ai="VAE latent space vs regular autoencoder latent space">
+A regular autoencoder is like saving everything to one flat folder — you can find specific files but there's no structure. A VAE is like an organized file system — related things are near each other, and you can browse naturally between them.
+</WebDevAnalogy>
+
+## Walking through latent space
+
+Because the latent space is smooth, you can do something magical: pick two points (say, a photo of person A and person B) and smoothly interpolate between them. The decoded images will show a gradual, realistic transition from one face to the other.
+
+This is called "latent space interpolation" and it's why VAEs were the first convincing face generators. You can also do arithmetic in latent space: encode "man with glasses" − encode "man" + encode "woman" = "woman with glasses."
+
+<Callout type="tip" title="This is how face editing apps work">
+Many face-editing tools use VAE-like latent spaces under the hood. Move in one direction: the person smiles more. Move in another: they age. Each direction in the latent space corresponds to a meaningful visual feature.
+</Callout>
+
+## Multimodal models
+
+So far, every model we've talked about handles one type of input: text, or images, or audio. **Multimodal models** handle several types at once.
+
+This isn't just bolting models together. It means the model has a *shared internal representation* that understands the relationship between different types of input. When you show GPT-4o a photo and ask "what's happening here?", the image and text are processed together — the model can connect what it sees with what it reads.
+
+## How vision works in LLMs
+
+When a model like Claude or GPT-4o "sees" an image, here's what happens:
+
+1. The image is split into patches (small squares, like tiles)
+2. Each patch is turned into an embedding vector — same kind of numbers as text tokens
+3. These image embeddings are fed into the Transformer alongside the text tokens
+4. The attention mechanism connects them — the model can attend to both the image patches and the text simultaneously
+
+<WebDevAnalogy webDev="Handling different file types — images and text — in one unified component" ai="Processing image patches and text tokens in one Transformer">
+It's like building a React component that accepts both image and text props and renders them in a unified layout. Internally they're different types, but the component treats them as parts of the same thing.
+</WebDevAnalogy>
+
+The trick is alignment: during training, the model sees millions of image-text pairs so it learns that the embedding for a photo of a dog should be "near" the embedding for the word "dog." CLIP (from the diffusion chapter) was an early version of this alignment.
+
+## Audio models
+
+Audio follows the same patterns. There are two main approaches:
+
+**Autoregressive** (like text LLMs): convert audio into discrete tokens (using a codec like EnCodec), then predict the next audio token. This is how some text-to-speech models work — they're basically LLMs that output sound tokens instead of word tokens.
+
+**Diffusion** (like image generators): start with noise, denoise into an audio waveform. Works for music generation and high-quality voice synthesis.
+
+Whisper (OpenAI's speech-to-text model) goes the other direction: audio in, text out. It's a Transformer that takes audio spectrograms as input and generates text tokens as output. Same architecture, different data types.
+
+## The convergence
+
+The trend is clear: everything is merging. The earliest AI models could do one thing — classify images, or translate text. Then models got good at generating one type of output. Now we're heading toward models that take *any* input and produce *any* output.
+
+Text in → text out (LLMs)
+Text in → image out (diffusion models)
+Image in → text out (vision models)
+Audio in → text out (Whisper)
+Text in → audio out (TTS models)
+Text + image in → text out (multimodal LLMs)
+Everything → everything (where we're heading)
+
+The underlying architecture is almost always the same: a Transformer with attention, just trained on different types of data.
+
+<Callout type="info" title="The Transformer is the universal adapter">
+Nearly every breakthrough in AI from 2017 onwards uses the Transformer architecture. Text, images, audio, video, protein folding, weather forecasting — the same basic attention mechanism works for all of them. The only thing that changes is what you feed in.
+</Callout>
+
+## Summary
+
+VAEs organize the latent space so you can smoothly navigate between generated outputs and even do arithmetic with concepts. Multimodal models process different data types (text, images, audio) through a shared Transformer, creating a unified understanding. The trend is convergence: models that handle any input and any output, all built on the same attention architecture.
+
+Next: [From Chat to Agents](/agentic-ai/from-chat-to-agents) — what happens when an LLM can do more than just talk.

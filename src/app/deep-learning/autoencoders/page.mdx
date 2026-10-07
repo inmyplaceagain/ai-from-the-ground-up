@@ -1,0 +1,115 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+What if a neural network had to describe an image using only 20 numbers — and then another network had to reconstruct the original image from just those 20 numbers?
+
+The first network would have to figure out what's truly important about the image. The second would have to learn how to fill in all the details from that compressed description.
+
+That's an **autoencoder**. And it's the idea that leads directly to generative AI.
+
+## Two halves
+
+An autoencoder has two parts:
+
+1. **Encoder** — takes the input and compresses it into a small representation (called the **latent space** or **bottleneck**)
+2. **Decoder** — takes that compressed representation and tries to reconstruct the original input
+
+The training goal is simple: make the output match the input as closely as possible. The network learns by minimizing the difference between input and output.
+
+<WebDevAnalogy webDev="Video codec (H.264)" ai="Autoencoder">
+A video codec compresses each frame into a tiny representation and then decompresses it for playback. The codec doesn't store every pixel — it learns what information matters (edges, motion, color regions) and throws away the rest. An autoencoder does the same thing, but learns the compression scheme from data.
+</WebDevAnalogy>
+
+## The bottleneck is the point
+
+If the latent space were the same size as the input, the network could just copy everything through. Boring and useless.
+
+The magic happens because the latent space is **much smaller** than the input. A 784-pixel image (28×28) might be compressed to just 20 numbers. The network is forced to learn what matters.
+
+<CodeBlock language="python" title="Simple autoencoder">
+{`import torch.nn as nn
+
+encoder = nn.Sequential(
+    nn.Linear(784, 128),
+    nn.ReLU(),
+    nn.Linear(128, 20),  # bottleneck: 784 → 20
+)
+
+decoder = nn.Sequential(
+    nn.Linear(20, 128),
+    nn.ReLU(),
+    nn.Linear(128, 784),
+    nn.Sigmoid(),         # output pixels between 0-1
+)
+
+def forward(x):
+    latent = encoder(x)   # compress
+    output = decoder(latent)  # reconstruct
+    return output`}
+</CodeBlock>
+
+The loss is just the difference between input and output — typically mean squared error. If the reconstruction is good, the 20-number latent representation has captured the essential features.
+
+## What lives in the latent space
+
+Train an autoencoder on handwritten digits. The 20-dimensional latent space organizes itself: similar digits cluster together. All the 3s end up near each other, all the 7s near each other.
+
+But here's the interesting part. The space between clusters is meaningful too. A point halfway between the "3" cluster and the "8" cluster might decode into something that looks like a blend of 3 and 8.
+
+This is the foundation of generative AI. If you can **decode** any point in the latent space into a realistic output, you can **generate** new data by picking new points.
+
+## Types of autoencoders
+
+### Denoising autoencoder
+
+Add noise to the input, but train the network to reconstruct the clean version. This forces the latent space to learn robust features — it can't just memorize; it has to understand the structure.
+
+### Sparse autoencoder
+
+Add a constraint: most of the latent values should be zero. This forces each neuron to specialize — one neuron for "has a loop," another for "has a vertical stroke." The representations become more interpretable.
+
+### Variational autoencoder (VAE)
+
+The most important variant. Instead of encoding to a single point, it encodes to a **probability distribution** (a mean and variance). When decoding, you sample from that distribution.
+
+This makes the latent space smooth and continuous. You can walk smoothly from one face to another, from one digit to another. No gaps, no dead zones.
+
+<Callout type="tip" title="Why VAEs matter">
+VAEs are the bridge between autoencoders and generative AI. They turn the latent space from "a place where compressed data lives" into "a place where you can generate new data." We'll explore this more in the Generative AI section.
+</Callout>
+
+## Practical uses
+
+Autoencoders aren't just academic curiosities:
+
+- **Dimensionality reduction** — compress high-dimensional data for visualization or faster processing (like PCA, but nonlinear)
+- **Anomaly detection** — train on normal data, then flag anything that reconstructs poorly. Used in fraud detection and manufacturing quality control.
+- **Image denoising** — remove noise, artifacts, or watermarks
+- **Feature learning** — the encoder's output is a learned representation that other models can use
+
+<CodeBlock language="python" title="Anomaly detection">
+{`# Train only on normal transactions
+autoencoder.fit(normal_transactions)
+
+# At inference: high reconstruction error = anomaly
+reconstruction = autoencoder(new_transaction)
+error = mean_squared_error(new_transaction, reconstruction)
+is_anomaly = error > threshold`}
+</CodeBlock>
+
+The logic: the network learned to compress and reconstruct "normal." If something doesn't reconstruct well, it's unlike anything the network has seen — it's an anomaly.
+
+## From compression to generation
+
+Here's the conceptual leap that changes everything:
+
+An autoencoder learns: input → latent point → reconstruction.
+
+A generative model asks: what if we **skip the encoder** and just pick a latent point? If we decode it, we get a new output that looks like the training data — but it's never been seen before.
+
+This idea — learning a latent space and then sampling from it — is the seed of diffusion models, VAEs, and the entire generative AI revolution. The encoder teaches the decoder what "realistic" looks like. Then the decoder can create on its own.
+
+## Summary
+
+Autoencoders learn to compress data into a small latent representation and reconstruct it. The bottleneck forces the network to learn what's essential. The latent space organizes itself meaningfully — similar things cluster together, and the space between them is smooth. This leads directly to generative models: if you can decode any latent point into something realistic, you can generate entirely new data.
+
+Next: [How LLMs Work](/generative-ai/how-llms-work) — how Transformers are turned into text generators that can write, code, and reason.

@@ -1,0 +1,127 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+This is it. The architecture behind ChatGPT, Claude, DALL-E, Stable Diffusion, Whisper, Codex — basically everything that's happened in AI since 2017.
+
+The paper was called "Attention Is All You Need." The authors weren't exaggerating.
+
+## The problem with RNNs
+
+RNNs process words one at a time, left to right. This has two problems:
+
+1. **It's slow.** You can't process word 5 until you've finished words 1-4. No parallelization possible.
+2. **Long-distance connections are weak.** Even with LSTMs, connecting word 1 to word 100 means passing information through 99 steps. Things get lost.
+
+The Transformer throws away the sequential processing entirely. It looks at **all words at once** and directly connects any word to any other word.
+
+## Attention: the core idea
+
+Read this sentence: "The cat sat on the mat because **it** was tired."
+
+What does "it" refer to? The cat — not the mat. You know this because you understand the relationship between these words. That's attention.
+
+In a Transformer, **self-attention** computes this for every word in the sentence, automatically:
+
+1. For each word, ask: "how relevant is every other word to me?"
+2. Compute a score for each pair.
+3. Use those scores to create a weighted mix of all words.
+
+After self-attention, the word "it" is no longer just the word "it." It's now a blend — mostly "cat" with some context from "sat" and "tired." Its representation now carries the meaning "the cat that was tired."
+
+<WebDevAnalogy webDev="SQL JOIN" ai="Self-attention">
+Self-attention is like every word doing a fuzzy JOIN against every other word. The "ON" clause is learned — the network discovers which words should connect to which. The result is an enriched representation where each word carries context from the words it's related to.
+</WebDevAnalogy>
+
+## Query, Key, Value
+
+Self-attention uses three vectors for each word:
+
+- **Query (Q)**: "What am I looking for?"
+- **Key (K)**: "What do I contain?"
+- **Value (V)**: "What information do I carry?"
+
+The process:
+1. Each word's Query is compared against every word's Key → produces attention scores
+2. Scores are turned into weights (using softmax — they sum to 1)
+3. These weights are used to create a weighted sum of all Values
+
+Think of it like a search engine. The Query is your search term. The Keys are page titles. The scores tell you which pages are relevant. The Values are the actual page content. Your result is a blend of the most relevant pages.
+
+<CodeBlock language="python" title="Self-attention (simplified)">
+{`import torch
+import torch.nn.functional as F
+
+def self_attention(Q, K, V):
+    scores = Q @ K.transpose(-2, -1)  # how similar is each Q to each K?
+    scores = scores / K.size(-1)**0.5  # scale down to prevent huge numbers
+    weights = F.softmax(scores, dim=-1) # normalize to probabilities
+    return weights @ V                  # weighted sum of values`}
+</CodeBlock>
+
+That `/ K.size(-1)**0.5` is the "scaled" in "scaled dot-product attention." Without it, the scores get too large and softmax saturates.
+
+## Multi-head attention
+
+One set of Q/K/V might focus on syntactic relationships (subject-verb agreement). Another might focus on semantic relationships (what refers to what). A third might focus on positional patterns (nearby words).
+
+**Multi-head attention** runs several attention operations in parallel, each with its own learned Q/K/V weights. Then it concatenates the results. This lets the model attend to different types of relationships simultaneously.
+
+GPT-3 uses 96 attention heads. Each one learns to look for different patterns in the data.
+
+## Positional encoding
+
+There's a catch. Since the Transformer sees all words at once (not sequentially like RNNs), it doesn't naturally know word order. "Dog bites man" and "Man bites dog" would look the same.
+
+**Positional encoding** fixes this by adding a unique signal to each word based on its position. The original paper used sine and cosine waves of different frequencies. Modern models often learn the positions during training.
+
+The result: each word's representation contains both its meaning AND its position.
+
+## The full Transformer
+
+A Transformer layer combines:
+
+1. **Multi-head self-attention** — each word gathers context from all other words
+2. **Feed-forward network** — a simple two-layer network applied to each word independently
+3. **Residual connections** — add the input back to the output (prevents gradient vanishing)
+4. **Layer normalization** — keeps values in a reasonable range
+
+Stack 12, 24, or 96 of these layers, and you get GPT, BERT, Claude.
+
+<CodeBlock language="python" title="One Transformer layer (PyTorch)">
+{`class TransformerLayer(nn.Module):
+    def __init__(self, d_model, n_heads):
+        super().__init__()
+        self.attention = nn.MultiheadAttention(d_model, n_heads)
+        self.ffn = nn.Sequential(
+            nn.Linear(d_model, d_model * 4),
+            nn.GELU(),
+            nn.Linear(d_model * 4, d_model),
+        )
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+
+    def forward(self, x):
+        x = x + self.attention(self.norm1(x), self.norm1(x), self.norm1(x))[0]
+        x = x + self.ffn(self.norm2(x))
+        return x`}
+</CodeBlock>
+
+## Why Transformers won
+
+| | RNNs | Transformers |
+|---|---|---|
+| Processing | Sequential (one word at a time) | Parallel (all words at once) |
+| Training speed | Slow (can't parallelize time steps) | Fast (massive GPU parallelism) |
+| Long-range connections | Weak (signal fades over distance) | Direct (any word to any word) |
+| Scalability | Diminishing returns with size | More data + more parameters = better |
+
+That last point is crucial. Transformers have a remarkable property: they keep getting better as you make them bigger and feed them more data. This is the **scaling law** that drove the entire LLM revolution.
+
+<Callout type="info" title="The scaling insight">
+Researchers discovered that Transformer performance improves predictably with three things: more parameters, more training data, and more compute. Double the model size, and performance improves by a predictable amount. This is why we went from GPT-2 (1.5B parameters) to GPT-3 (175B) to GPT-4 and beyond.
+</Callout>
+
+## Summary
+
+The Transformer processes all words in parallel using self-attention — a mechanism that directly connects any word to any other word. Multi-head attention lets it learn different types of relationships simultaneously. Positional encoding tells it about word order. It's faster to train than RNNs, better at long-range connections, and scales predictably. This is the foundation of modern AI.
+
+Next: [Autoencoders](/deep-learning/autoencoders) — networks that learn to compress and reconstruct data, opening the door to generative models.

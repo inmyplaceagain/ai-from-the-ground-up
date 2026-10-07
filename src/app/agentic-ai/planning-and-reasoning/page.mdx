@@ -1,0 +1,114 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Ask a model "what's 27 × 34?" and it might get it wrong. Ask it "what's 27 × 34? Think step by step." and it almost always gets it right.
+
+That's not a trick. It's a fundamental insight about how language models work — and it's the foundation of how agents handle complex tasks.
+
+## Chain-of-thought: thinking out loud
+
+When you ask a model to show its reasoning, something interesting happens. The intermediate tokens it generates — "27 × 30 = 810, 27 × 4 = 108, 810 + 108 = 918" — aren't just for show. They actually help the model reach the right answer.
+
+Why? Because LLMs generate tokens one at a time, and each new token can "see" all the previous ones. When the model writes out intermediate steps, those steps become part of the context for the next step. It's literally thinking by writing.
+
+<CodeBlock language="text" title="Without vs. with chain-of-thought">
+{`Without: "What's 27 × 34?" → "892" ✗
+
+With: "What's 27 × 34? Think step by step."
+→ "27 × 30 = 810
+   27 × 4 = 108
+   810 + 108 = 918" ✓`}
+</CodeBlock>
+
+<WebDevAnalogy webDev="Console.log debugging" ai="Chain-of-thought">
+It's like adding console.log statements. The program could compute the answer in one step, but printing intermediate values helps you (and the model) catch errors along the way.
+</WebDevAnalogy>
+
+This works for all kinds of reasoning — not just math. Code debugging, logic puzzles, planning, analysis. If the task requires more than one mental step, chain-of-thought helps.
+
+## Task decomposition: breaking it down
+
+Real-world tasks are messy. "Build me a landing page" involves design, HTML, CSS, copy, images, hosting. An agent that tries to do it all in one shot will produce garbage.
+
+The solution: break big tasks into small steps. The agent writes a plan first, then executes each step.
+
+<CodeBlock language="text" title="Task decomposition">
+{`User: "Add dark mode to the settings page"
+
+Agent's plan:
+1. Read the current settings page component
+2. Check what theming system the project uses
+3. Add a toggle component to the settings UI
+4. Connect it to the theme context
+5. Test that it works
+
+Step 1: [calls read_file("src/pages/Settings.tsx")]
+Step 2: [searches for "theme" in the codebase]
+Step 3: [edits the component]
+...`}
+</CodeBlock>
+
+This is exactly how you'd approach the task yourself. The difference is the agent generates and follows its own plan.
+
+## The planning loop
+
+Here's where planning gets powerful. The agent doesn't just make a plan and blindly follow it. It plans, executes one step, checks the result, and *replans* if needed.
+
+<CodeBlock language="text" title="Plan → execute → check → replan">
+{`Plan: "Edit the config file to add the new feature flag"
+Execute: [reads config.json]
+Check: "Wait, this project uses YAML configs, not JSON"
+Replan: "Edit config.yaml instead"
+Execute: [reads config.yaml]
+Check: "Found it. Now I can add the flag."
+Execute: [edits config.yaml]`}
+</CodeBlock>
+
+This loop — plan, act, observe, adjust — is what makes agents actually useful for real work. They adapt when things aren't what they expected.
+
+<Callout type="info" title="This is also how you work">
+You don't write a complete plan and follow it blindly. You start, discover things along the way, and adjust. Agents do the same thing, just with an LLM doing the reasoning.
+</Callout>
+
+## Tree-of-thought: exploring options
+
+Sometimes there's more than one way to approach a problem. **Tree-of-thought** takes chain-of-thought further: instead of one reasoning path, the model explores several in parallel and picks the best one.
+
+Think of it like:
+
+- **Chain-of-thought**: walk one path through a maze
+- **Tree-of-thought**: explore three paths simultaneously, abandon dead ends early
+
+This is expensive (you're running the model multiple times) but powerful for problems where the first approach might be wrong — like complex debugging or architectural decisions.
+
+In practice, most agents use simple chain-of-thought with replanning. Tree-of-thought is for specialized applications where accuracy matters more than cost.
+
+## The danger: error compounding
+
+Here's the thing nobody mentions in the hype. Each step in an agent's plan has some probability of going wrong. And errors compound.
+
+If each step has a 90% chance of being correct, a 10-step plan has a 0.9¹⁰ = 35% chance of getting everything right. That's... not great.
+
+This is why good agent design focuses on:
+
+- **Fewer steps**: do more in each step, need fewer total
+- **Verification**: check results after each step, catch errors early
+- **Recovery**: when something goes wrong, backtrack and try differently
+- **Human checkpoints**: for critical steps, ask a human to verify
+
+<WebDevAnalogy webDev="CI/CD pipeline" ai="Agent planning loop">
+Same reason your CI pipeline has tests at each stage rather than one big test at the end. Catch errors early, fail fast, and the whole system is more reliable than any individual step.
+</WebDevAnalogy>
+
+## Reasoning models
+
+Recent models like Claude's extended thinking and OpenAI's o1 bake chain-of-thought directly into the model. Instead of prompting "think step by step," the model automatically does internal reasoning before responding.
+
+This is a shift from prompt engineering to model architecture. The reasoning happens inside the model, often invisible to you, and it produces better results on hard problems — at the cost of more tokens and latency.
+
+For agents, this means the planning step gets better without you doing anything. The model naturally thinks through the problem before acting.
+
+## Summary
+
+Agents handle complex tasks by thinking step by step (chain-of-thought), breaking big tasks into small ones (decomposition), and adjusting plans when things don't go as expected (the planning loop). The biggest risk is error compounding — each step can go wrong, and mistakes cascade. Good agents verify their work and keep plans short.
+
+Next: [Multi-Agent Systems](/agentic-ai/multi-agent-systems) — what happens when you give multiple specialized agents the same problem.

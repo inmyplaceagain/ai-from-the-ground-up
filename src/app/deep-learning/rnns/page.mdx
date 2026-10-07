@@ -1,0 +1,93 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+CNNs are great for images — data that has spatial structure. But what about **sequences**? Text, time series, music, stock prices — data where the order matters.
+
+A regular neural network sees each input independently. Show it word 5 of a sentence, and it has no idea what words 1-4 were. That's a problem. "I saw her duck" means something very different depending on what comes before it.
+
+**Recurrent Neural Networks (RNNs)** solve this by adding memory.
+
+## The loop
+
+Here's the key idea: an RNN processes inputs one at a time, and at each step, it passes a **hidden state** to itself for the next step. This hidden state is the memory — a compressed summary of everything the network has seen so far.
+
+<CodeBlock language="python" title="RNN logic (simplified)">
+{`hidden = zeros(hidden_size)
+
+for word in sentence:
+    hidden = activation(W_input @ word + W_hidden @ hidden + bias)
+    output = W_output @ hidden`}
+</CodeBlock>
+
+At each step, the new hidden state depends on two things: the current input AND the previous hidden state. That's the recurrence — the network feeds its own output back as input.
+
+<WebDevAnalogy webDev="Array.reduce()" ai="RNN">
+An RNN works like `reduce()`. You start with an initial value (the hidden state), process each element one at a time, and accumulate the result. Each step sees the current element plus everything that came before it, compressed into the accumulator.
+</WebDevAnalogy>
+
+## Reading a sentence
+
+When an RNN reads "The cat sat on the mat":
+
+- Step 1: sees "The" → hidden state encodes "article starting a noun phrase"
+- Step 2: sees "cat" + previous state → hidden state encodes "we're talking about a cat"
+- Step 3: sees "sat" + previous state → hidden state encodes "a cat performed a sitting action"
+- Step 4-6: keeps building up the context
+
+At each step, the hidden state is a vector of numbers that somehow represents the meaning of everything seen so far. The network learns what to remember and what to forget during training.
+
+## The training trick: unrolling
+
+How do you train an RNN? You "unroll" the loop in time. Instead of thinking of it as one network with a loop, think of it as many copies of the same network, one for each time step, chained together.
+
+Then you just use backpropagation — but through time. It's called **backpropagation through time (BPTT)**.
+
+## The short-term memory problem
+
+RNNs sound great in theory. In practice, they have a devastating flaw: they **forget**.
+
+Try this: "The author, who grew up in Prague and studied mathematics at Charles University before spending a decade at various tech companies across Europe, **writes** in Czech."
+
+The verb "writes" needs to agree with "author" — but that word was 25 words ago. By the time the RNN gets to "writes," the hidden state has been overwritten so many times that "author" is a distant whisper.
+
+This is the **vanishing gradient problem** showing up again, but in a new form. During backpropagation through time, the gradient signal has to travel through every time step. At each step, it gets multiplied by the same weight matrix. If those multiplied values are less than 1, the gradient shrinks exponentially.
+
+<Callout type="warning" title="The math is brutal">
+After 20 time steps, if the gradient is multiplied by 0.9 at each step: 0.9²⁰ = 0.12. After 50 steps: 0.9⁵⁰ = 0.005. The signal from early words is basically zero.
+</Callout>
+
+In practice, vanilla RNNs can only "remember" about **10-20 steps** back. For many real-world tasks — long documents, full conversations, multi-minute audio — that's nowhere near enough.
+
+## RNNs in code
+
+<CodeBlock language="python" title="RNN in PyTorch">
+{`import torch.nn as nn
+
+rnn = nn.RNN(
+    input_size=100,    # word vector size
+    hidden_size=256,   # memory size
+    num_layers=2,      # stack two RNNs
+    batch_first=True
+)
+
+# Process a sequence of 50 words
+outputs, final_hidden = rnn(word_vectors)`}
+</CodeBlock>
+
+`outputs` contains the hidden state at every time step (useful for tasks like tagging each word). `final_hidden` is the last hidden state — a summary of the whole sequence (useful for classification: "is this review positive or negative?").
+
+## What RNNs gave us
+
+Despite their memory problems, RNNs were the first architecture that could handle variable-length sequences. Before them, you had to make everything fixed-length. They powered:
+
+- Early machine translation (Google Translate, pre-2017)
+- Speech recognition
+- Time series prediction
+- Music generation
+
+But that 10-20 step memory limit kept holding things back. The next chapter introduces the fix.
+
+## Summary
+
+RNNs process sequences by maintaining a hidden state — a compressed memory that passes from one step to the next. This lets them handle variable-length inputs where order matters. But their memory is short: the gradient signal fades over long sequences, so they forget early inputs. This fundamental limitation led to LSTMs.
+
+Next: [LSTMs & GRUs](/deep-learning/lstms) — networks that learn what to remember and what to forget, solving the short-term memory problem.

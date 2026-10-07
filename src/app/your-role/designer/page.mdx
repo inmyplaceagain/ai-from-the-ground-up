@@ -1,0 +1,59 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+If you're a designer reading this, here's the number that matters: 91% of designers using generative AI say it improves the **quality** of their work, not just the speed.
+
+That's not "AI does your job." That's "AI does the boring parts of your job so you can do more of the interesting parts."
+
+## What changed
+
+A year ago, AI design tools were party tricks. Generate a random UI from a prompt, get something that looked impressive in a tweet but fell apart the moment you tried to use it in a real project.
+
+In 2026, the tools finally understand **your** design system.
+
+**Figma Make** generates complete UI layouts using your actual components, your tokens, your spacing scale. Not generic boxes — your buttons, your cards, your type hierarchy. You describe what you need, it builds with the pieces you already defined.
+
+**Figma AI Agent** works directly on your canvas. It can rearrange layouts, apply styles, generate variations — all while respecting the constraints you've set up in your design system.
+
+**Google Stitch** takes text descriptions, rough sketches, or even reference images and turns them into responsive UI with exportable code.
+
+**v0 by Vercel** lets you describe a component and get a working React implementation instantly, then refine it conversationally — "make the header sticky," "add a dark mode toggle."
+
+## Before and after
+
+Here's what a real design workflow looks like now.
+
+**Before:** You get a brief for a settings page. You manually create 5+ layout variations in Figma. You tweak spacing, test different arrangements, adjust for mobile. You export assets. You write specs for the developer. This takes a day, maybe two.
+
+**After:** You describe the settings page to Figma Make. It generates three variations using your design system's components. You pick the one closest to what you imagined, refine it conversationally — "move the profile section above billing," "use the compact card variant." You spend your time on the decisions that matter: the information hierarchy, the flow, the edge cases. Builder.io converts your final design directly into production-ready code.
+
+The day-long task takes an hour. But you didn't skip the thinking — you skipped the pixel-pushing.
+
+<Callout type="tip" title="72% and counting">
+As of 2026, 72% of designers use generative AI in their workflow. The ones who don't aren't holding a principled position — they're just behind. The tools are good enough now that not using them is like not using Figma's auto-layout.
+</Callout>
+
+## How it actually works (the theory)
+
+Two chapters in this course explain the tech behind your new tools:
+
+**[Diffusion Models](/generative-ai/diffusion-models)** — how image generation works. The "add noise, then learn to remove it" process. This is the engine behind Midjourney, DALL-E, and the visual generation features in Figma and Stitch.
+
+**[CNNs: How Computers See](/deep-learning/cnns)** — how AI understands images. Sliding windows that detect edges, then shapes, then objects. This is why AI can look at your mockup and understand "that's a navigation bar" instead of "that's some rectangles."
+
+You don't need to train models. But understanding how they work makes you better at using them — you'll know why certain prompts work better, and why the AI sometimes gets confused by unusual layouts.
+
+## What stays human
+
+AI is very good at generating options. It's terrible at knowing which option is right.
+
+**Taste.** The AI can generate 50 color palettes. It can't tell you which one makes your fintech app feel trustworthy without feeling boring.
+
+**Brand judgment.** Your design system exists because someone made opinionated decisions about what this product should feel like. AI follows rules. You make the rules.
+
+**User empathy.** The AI doesn't know that your users are stressed when they hit the billing page, or that they're excited on the onboarding flow. You design for emotions, not just layouts.
+
+**Rule-breaking.** The best design moments happen when someone intentionally breaks the system — an oversized heading, an unexpected illustration, a layout that doesn't follow the grid. AI optimizes for the average. You optimize for the moment.
+
+Your tools got dramatically better. Your judgment is what makes them useful.
+
+Next: [Frontend Developer](/your-role/frontend-developer) — where AI-generated components meet the reality of production code.

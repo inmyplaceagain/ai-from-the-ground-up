@@ -1,0 +1,92 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+You've spent years learning SQL, mastering pivot tables, and building dashboards that tell a story. Now someone types "show me sales by region for Q3" into a chatbox and gets the same chart in seconds.
+
+Does that make your skills obsolete? No. It makes them the foundation for something much faster.
+
+## The question changed
+
+The bottleneck in data analysis was never "can you write the SQL?" It was always "do you know which question to ask?" AI just removed the bottleneck that wasn't the real one.
+
+<CodeBlock language="text" title="A real workflow with Power BI Copilot">
+{`You type: "Show me customer churn rate by acquisition channel 
+          for the last 6 months, compared to the same period last year"
+
+AI generates:
+- The SQL query against your data warehouse
+- A comparison bar chart with year-over-year deltas
+- A callout highlighting that organic search churn jumped 40%
+
+You add: "Break down the organic search cohort by product tier"
+
+AI refines the chart in seconds.`}
+</CodeBlock>
+
+What used to take 30 minutes of SQL writing and dashboard building now takes 30 seconds of typing. But notice — the *question* was the hard part. "Churn rate by acquisition channel compared year-over-year" isn't something a random person walks in and asks. That's your expertise talking.
+
+## The tools
+
+- **Power BI Copilot** — natural language to dashboards. Describe what you want to see, get the visualization built. Understands your data model
+- **ThoughtSpot** — natural language analytics with SpotIQ, an engine that proactively detects anomalies and trends you didn't ask about
+- **Draxlr** — type English, get SQL + chart. Straightforward text-to-SQL that executes and visualizes
+- **Julius AI** — upload a CSV, ask questions in plain language, get analysis with visualizations. No code required
+
+The key difference between these tools and ChatGPT: they're connected to your actual data. They know your schema, your tables, your column names. They generate SQL that actually runs.
+
+## Proactive insights
+
+This is the part that's genuinely new. Tools like ThoughtSpot's SpotIQ don't wait for you to ask a question. They run statistical analyses across your data *proactively* and surface things like:
+
+- "Revenue from the EMEA region dropped 12% this week — unusual compared to the 52-week trend"
+- "There's a strong correlation between support ticket volume and feature X usage"
+- "This customer segment's retention rate diverged from the baseline starting March 15"
+
+<WebDevAnalogy webDev="Error monitoring that alerts you to anomalies" ai="AI analytics that alerts you to data anomalies">
+Sentry doesn't wait for you to check for errors — it tells you when something breaks. SpotIQ does the same for business metrics. You set up the data connection, it watches for patterns.
+</WebDevAnalogy>
+
+## Before and after
+
+| | Before | After |
+|---|--------|-------|
+| **Getting the data** | Write SQL, debug joins, handle edge cases | Describe what you want in English |
+| **Building charts** | Manual Tableau/Looker dashboard creation | AI generates the visualization from your question |
+| **Finding anomalies** | Manually scan dashboards, hope you spot it | AI proactively surfaces unusual patterns |
+| **Ad-hoc requests** | "Can you pull this data?" → 2 hours | "Can you pull this data?" → 2 minutes |
+| **Iteration** | Rewrite the query, rebuild the chart | "Now break it down by region" |
+
+<Callout type="info" title="A real migration story">
+Zapier migrated 42TB of data using DataPilot AI with just 4 minutes of downtime — down from 40 minutes with their previous approach. AI didn't replace the data engineers. It gave them a tool that handled the tedious coordination.
+</Callout>
+
+## AI doesn't replace the stack
+
+A common misconception: "AI replaces SQL / Excel / BI tools." It doesn't. It layers on top. You still need:
+
+- A well-structured data warehouse (the AI queries *your* data)
+- Clean data models (garbage in, garbage out — AI doesn't fix bad schemas)
+- Domain knowledge of what the numbers mean
+- Statistical literacy to validate the AI's analysis
+
+The analysts who thrive aren't the ones who memorized SQL syntax. They're the ones who know what to look for in the data.
+
+## What stays human
+
+AI can answer any question you ask about your data. It can't tell you which questions matter.
+
+The irreplaceable parts of data analysis:
+
+- **Knowing which questions to ask** — "Why did churn spike?" is a human question that requires business context
+- **Understanding causation vs. correlation** — AI finds correlations. You determine if they're meaningful
+- **Storytelling** — turning numbers into a narrative that drives decisions. A chart is data. A story is insight
+- **Skepticism** — knowing when the data is lying, when a metric is misleading, when the sample size is too small
+
+Your job title stays "Data Analyst." Your actual job shifts from "person who writes queries" to "person who asks the right questions and tells the right stories."
+
+## Go deeper
+
+- [From Rules to Data](/machine-learning/from-rules-to-data) — features, labels, and how ML finds patterns
+- [Regression](/machine-learning/regression) and [Classification](/machine-learning/classification) — the prediction models behind these tools
+- [Using LLMs](/generative-ai/using-llms) — how the natural-language interface actually works
+
+Next up: [Product Manager](/your-role/product-manager) — AI can write a PRD, but it can't decide what to build.

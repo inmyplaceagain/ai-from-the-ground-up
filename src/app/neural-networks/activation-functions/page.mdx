@@ -1,0 +1,100 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+The perceptron has a problem: it only outputs 0 or 1. Yes or no. But the real world isn't binary. You want to say "I'm 70% sure this is a cat" — not just "cat" or "not cat."
+
+Activation functions fix this. They replace the hard yes/no switch with something smoother.
+
+## The step function (what we had)
+
+The perceptron uses a **step function**: if the total is above 0, output 1. Otherwise, output 0. It's a cliff — you're either on or off.
+
+<CodeBlock language="python" title="Step function">
+{`def step(x):
+    return 1 if x >= 0 else 0`}
+</CodeBlock>
+
+This works for simple classification, but it throws away information. If one input scores 0.01 and another scores 100, they both get the same output: 1.
+
+## Sigmoid: the smooth switch
+
+Sigmoid squishes any number into a range between 0 and 1. Big positive numbers → close to 1. Big negative numbers → close to 0. Zero → exactly 0.5.
+
+<CodeBlock language="python" title="Sigmoid">
+{`import math
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))`}
+</CodeBlock>
+
+Think of it as a dimmer switch instead of an on/off switch. The output now represents a **probability** — "I'm 0.73 sure this is spam."
+
+The curve looks like a stretched-out S. Most of the action happens near zero. Far from zero, the output barely changes — it's already saturated at 0 or 1.
+
+<WebDevAnalogy webDev="opacity: 0 to 1" ai="Sigmoid output">
+Sigmoid gives you a smooth value between 0 and 1, just like CSS opacity. You don't jump from invisible to visible — you fade.
+</WebDevAnalogy>
+
+## ReLU: the surprisingly simple winner
+
+ReLU stands for Rectified Linear Unit. It does one thing:
+
+<CodeBlock language="python" title="ReLU">
+{`def relu(x):
+    return max(0, x)`}
+</CodeBlock>
+
+That's it. If the number is positive, keep it. If it's negative, make it zero.
+
+This sounds too dumb to be useful. But ReLU is the **most popular activation function in modern deep learning**. Why?
+
+1. **It's fast.** No exponentials, no division. Just a comparison.
+2. **It doesn't saturate.** Sigmoid outputs barely change for large inputs (the curve flattens). ReLU keeps growing — a score of 100 stays 100, not 0.9999.
+3. **It solves the vanishing gradient problem.** This is the big one.
+
+<Callout type="info" title="The vanishing gradient problem in one sentence">
+When you stack many sigmoid layers, the learning signal gets multiplied by tiny numbers at each layer, so early layers learn almost nothing — like a game of telephone where the message fades to silence.
+</Callout>
+
+ReLU doesn't have this problem because its gradient is just 1 for positive values. The signal passes through cleanly.
+
+## Tanh: sigmoid's centered cousin
+
+Tanh is like sigmoid, but outputs range from -1 to +1 instead of 0 to 1.
+
+<CodeBlock language="python" title="Tanh">
+{`import math
+
+def tanh(x):
+    return math.tanh(x)`}
+</CodeBlock>
+
+The key difference: tanh is **centered at zero**. Positive inputs give positive outputs, negative inputs give negative outputs. This matters because it means the average output is around zero, which makes the next layer's job easier.
+
+The curve looks like sigmoid, just stretched vertically to span -1 to +1.
+
+## When to use what
+
+| Function | Output range | Good for |
+|----------|-------------|----------|
+| Step | 0 or 1 | Simple perceptrons |
+| Sigmoid | 0 to 1 | Output layer (probabilities) |
+| ReLU | 0 to ∞ | Hidden layers (default choice) |
+| Tanh | -1 to +1 | Hidden layers (when you want centered outputs) |
+
+In practice: use **ReLU** for hidden layers and **sigmoid** for the output layer when you need a probability. That covers 90% of cases.
+
+<Callout type="tip" title="There are more">
+Leaky ReLU (lets a tiny bit of negative through), GELU (used in Transformers), Swish — the zoo keeps growing. But they're all variations on the same idea: give the network a smooth, non-linear way to transform its signals.
+</Callout>
+
+## Why non-linearity matters
+
+Here's the real reason we need activation functions at all. Without them, stacking layers is pointless. Two linear layers in a row just collapse into one linear layer — it's like multiplying by 2 and then by 3; you could've just multiplied by 6.
+
+Activation functions break this linearity. They introduce curves. And curves are what let neural networks learn complex, non-linear patterns — like the difference between a cat and a dog.
+
+## Summary
+
+Activation functions control what a neuron outputs. The step function gives binary yes/no. Sigmoid gives smooth probabilities. ReLU gives "keep it or zero it." Each one lets the network learn different kinds of patterns. ReLU won the popularity contest because it's fast and doesn't fade over many layers.
+
+Next: [Multi-Layer Networks](/neural-networks/multi-layer-networks) — what happens when you stack neurons into layers and connect them all together.

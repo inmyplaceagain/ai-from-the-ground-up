@@ -1,0 +1,110 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Here's the biggest idea in this whole course, and it fits in one sentence:
+
+**Instead of writing the rules yourself, you give the computer examples and it figures out the rules.**
+
+That's machine learning. That's the whole paradigm shift. Let's unpack it.
+
+## Traditional programming vs ML
+
+You already know traditional programming. You write rules:
+
+<CodeBlock language="javascript" title="Traditional: you write the rules">
+{`function isSpam(email) {
+  if (email.includes("FREE MONEY")) return true;
+  if (email.includes("buy now")) return true;
+  if (email.sender === "nigerian.prince@") return true;
+  // ... 500 more rules you maintain forever
+  return false;
+}`}
+</CodeBlock>
+
+This works until it doesn't. Spammers change their wording. You add more rules. They adapt. You add more rules. It's an arms race you can't win.
+
+Machine learning flips this:
+
+<CodeBlock language="python" title="ML: the computer figures out the rules">
+{`# Give it 10,000 emails labeled "spam" or "not spam"
+model = train(emails, labels)
+
+# Now it can classify new emails it's never seen
+result = model.predict(new_email)`}
+</CodeBlock>
+
+That's it. You don't write the rules. You show it enough examples and it finds the patterns itself.
+
+<WebDevAnalogy webDev="Writing if/else rules by hand" ai="Giving examples and letting the model learn the rules">
+Traditional programming is like hardcoding CSS breakpoints for every device. ML is like using `auto-fit` in CSS Grid — you describe what you want, and the system figures out the details.
+</WebDevAnalogy>
+
+## The key terms
+
+Four words you'll hear constantly. Here's what they actually mean:
+
+**Training data** — the examples you show the model. Like your test fixtures, but for learning.
+
+**Features** — the columns in your spreadsheet that the model looks at. For an email: word count, number of links, sender domain, time of day, etc. Think of them as the inputs to your function.
+
+**Labels** — the answer for each example. "spam" or "not spam." This is what the model is trying to predict.
+
+**Model** — the thing that comes out of training. It's a function that takes features in and spits predictions out. You can save it, load it, ship it — just like any other artifact.
+
+## How it actually works
+
+Here's the intuition. Imagine you have a spreadsheet of 10,000 emails:
+
+| Word count | Links | Has "free" | Has attachment | **Spam?** |
+|-----------|-------|-----------|---------------|----------|
+| 50 | 12 | yes | no | **yes** |
+| 200 | 2 | no | yes | **no** |
+| 30 | 8 | yes | no | **yes** |
+| 500 | 1 | no | no | **no** |
+
+The model looks at all 10,000 rows and figures out: "emails with lots of links and the word 'free' tend to be spam." It doesn't know English. It doesn't understand spam. It just found a pattern in numbers.
+
+<Callout type="tip" title="This is why data matters so much">
+Your model is only as good as your examples. Garbage in, garbage out. If your training data is biased or incomplete, your model will be biased or incomplete. No amount of clever algorithms fixes bad data.
+</Callout>
+
+## The three flavors
+
+Machine learning comes in three main styles:
+
+**Supervised learning** — you have labels. "Here are 10,000 emails, each marked spam or not spam. Learn the pattern." This is what most of the next few chapters cover.
+
+**Unsupervised learning** — no labels. "Here are 10,000 customer profiles. Find me groups of similar customers." The model finds structure you didn't know was there.
+
+**Reinforcement learning** — no examples at all. Instead, the model gets rewards and punishments. "Play this game a million times. +1 for winning, -1 for losing." That's how game-playing AIs and robotics work.
+
+## A real example
+
+Here's a complete ML pipeline in Python. Ten lines:
+
+<CodeBlock language="python" title="Spam classifier in 10 lines">
+{`from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+
+# Your training data
+emails = ["buy now free offer", "meeting at 3pm", "FREE MONEY click here", "project update"]
+labels = ["spam", "not_spam", "spam", "not_spam"]
+
+# Turn text into numbers (features)
+vectorizer = CountVectorizer()
+features = vectorizer.fit_transform(emails)
+
+# Train the model
+model = MultinomialNB().fit(features, labels)
+
+# Predict on a new email
+new = vectorizer.transform(["claim your free prize now"])
+print(model.predict(new))  # ["spam"]`}
+</CodeBlock>
+
+No rules. No if-statements. Just examples and a model that learned from them.
+
+## Summary
+
+Machine learning is programming with examples instead of rules. You give it data with labels, it finds the patterns, and you get a model that can make predictions on new data. The next chapters break down the two main types of supervised learning: predicting numbers (regression) and predicting categories (classification).
+
+Next: [Regression](/machine-learning/regression) — drawing a line through data points to predict numbers.

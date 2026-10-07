@@ -1,0 +1,100 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Let's get your AI dev environment running. If you've set up a Node project before, this will feel familiar — just different tool names.
+
+## Install Python
+
+You probably already have Python on your machine. Check:
+
+<CodeBlock language="bash" title="Terminal">
+{`python3 --version
+# Should show 3.10 or higher`}
+</CodeBlock>
+
+If not, grab it from [python.org](https://python.org) or use `brew install python3` on Mac.
+
+## Create a virtual environment
+
+A virtual environment is like `node_modules` — it keeps your project's packages separate from everything else on your system.
+
+<CodeBlock language="bash" title="Terminal">
+{`# Create a project folder
+mkdir ai-playground && cd ai-playground
+
+# Create a virtual environment (like npm init)
+python3 -m venv .venv
+
+# Activate it (you'll need to do this each time you open a new terminal)
+source .venv/bin/activate    # Mac/Linux
+# .venv\\Scripts\\activate   # Windows`}
+</CodeBlock>
+
+When activated, you'll see `(.venv)` at the start of your terminal prompt. That means packages install into this folder, not globally.
+
+<WebDevAnalogy webDev="node_modules + package.json" ai="venv + requirements.txt">
+Virtual environments isolate dependencies per project, just like node_modules. The `requirements.txt` file is your package.json — a list of what to install.
+</WebDevAnalogy>
+
+## Install the key libraries
+
+<CodeBlock language="bash" title="Terminal">
+{`pip install numpy pandas scikit-learn matplotlib jupyter`}
+</CodeBlock>
+
+Here's what each one does:
+
+- **numpy** — fast math on arrays of numbers (the foundation everything else is built on)
+- **pandas** — data tables (think spreadsheets in code)
+- **scikit-learn** — ready-made ML models (classification, regression, clustering)
+- **matplotlib** — charts and plots
+- **jupyter** — interactive coding notebooks
+
+Save your dependencies:
+
+<CodeBlock language="bash" title="Terminal">
+{`pip freeze > requirements.txt
+# Later, anyone can recreate your setup with:
+# pip install -r requirements.txt`}
+</CodeBlock>
+
+## Jupyter notebooks
+
+Jupyter is where most AI work happens. Think of it as a REPL that saves — you write code in cells, run them one at a time, and see results immediately. Charts show up inline. Data tables render as actual tables.
+
+<CodeBlock language="bash" title="Terminal">
+{`jupyter notebook`}
+</CodeBlock>
+
+This opens a browser tab. Create a new notebook, and you're ready to go.
+
+<Callout type="tip" title="Don't want to install anything?">
+Use [Google Colab](https://colab.research.google.com) — it's a free Jupyter notebook in the cloud with GPU access. Everything is pre-installed. Just open it and start coding. It's the "just works" option.
+</Callout>
+
+## Quick sanity check
+
+Open a notebook (or a Python file) and run this:
+
+<CodeBlock language="python" title="Test your setup">
+{`import numpy as np
+
+# Create an array of 5 random numbers
+data = np.random.randn(5)
+print(data)
+# Something like: [-0.42  1.31  0.07 -0.88  0.52]
+
+print(f"Mean: {data.mean():.2f}")
+print(f"Std:  {data.std():.2f}")`}
+</CodeBlock>
+
+If that runs without errors, you're ready.
+
+## VS Code tip
+
+If you prefer VS Code over Jupyter, install the **Python** and **Jupyter** extensions. You can run `.ipynb` notebooks right inside VS Code, or add `# %%` comments in a regular `.py` file to create runnable cells.
+
+---
+
+That's the setup. Five minutes, and you have everything you need for the rest of this course.
+
+Next: [What Is AI?](/classical-ai/what-is-ai) — a 30-second history of what "artificial intelligence" has actually meant over the decades.

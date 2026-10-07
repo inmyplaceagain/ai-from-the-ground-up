@@ -1,0 +1,82 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+An LLM is a next-word prediction machine. That's it.
+
+You give it "The cat sat on the" and it says "mat" is the most likely next word. Then it takes "The cat sat on the mat" and predicts the next word after that. And it keeps going, one word at a time, until it decides to stop.
+
+That's ChatGPT. That's Claude. That's all of them. A very, very good autocomplete.
+
+## Tokens, not words
+
+The model doesn't actually see words. It sees **tokens** — pieces of words.
+
+The word "unhappiness" becomes three tokens: `un`, `happi`, `ness`. The word "the" is one token. A newline character is a token. A space can be a token.
+
+Why? Because breaking words into pieces lets the model handle words it's never seen before. It knows "un" means "not" and "ness" means "state of" — so it can figure out new combinations.
+
+<CodeBlock language="text" title="Tokenization example">
+{`"Hello world"     → ["Hello", " world"]           (2 tokens)
+"unhappiness"     → ["un", "happi", "ness"]        (3 tokens)
+"console.log()"   → ["console", ".", "log", "()"]  (4 tokens)`}
+</CodeBlock>
+
+A rough rule of thumb: 1 token ≈ 4 characters of English. This matters because models have a limit on how many tokens they can process at once (the **context window**).
+
+## Embeddings
+
+Each token gets converted into a list of numbers called an **embedding** — a vector with hundreds or thousands of values.
+
+The key insight: words with similar meanings end up with similar numbers. "King" and "queen" are close together. "King" and "refrigerator" are far apart.
+
+<WebDevAnalogy webDev="CSS color values — similar colors have similar RGB numbers" ai="Embeddings — similar words have similar vectors">
+Just like `#FF0000` (red) and `#FF3300` (orange-red) are numerically close, the embeddings for "happy" and "joyful" are numerically close. The numbers *encode* meaning.
+</WebDevAnalogy>
+
+These embeddings aren't hand-crafted. The model *learns* them during training. It figures out, all on its own, that "Paris" and "France" should be near each other.
+
+## The transformer does the magic
+
+Once every token is an embedding, the Transformer (from the previous chapter) processes them all. The attention mechanism lets each token look at every other token to understand context.
+
+"Bank" means something different in "river bank" vs "bank account." The Transformer figures out which meaning to use by looking at the surrounding words.
+
+After all the attention layers process the input, the model produces a probability for every possible next token. It might say:
+
+- "mat" → 35%
+- "floor" → 20%
+- "table" → 10%
+- "couch" → 8%
+- ... thousands more options
+
+Then it picks one (we'll cover *how* it picks in the "Using LLMs" chapter).
+
+## Trained on the internet
+
+Where does this ability come from? The model was trained on a massive pile of text — books, websites, code, Wikipedia, forums. Trillions of tokens.
+
+During training, the model saw sentence after sentence and practiced predicting the next word. Every time it got it wrong, it adjusted its internal numbers slightly. Billions of adjustments later, it got really good at it.
+
+Along the way, it absorbed:
+- **Grammar** — it learned how English (and other languages) work
+- **Facts** — it memorized a lot of information from its training data
+- **Reasoning patterns** — it learned that "if A then B" structures exist
+- **Code conventions** — it saw millions of code files
+- **Style and tone** — it can write like Shakespeare or like a README
+
+<Callout type="warning" title="This is also where the problems come from">
+The model doesn't *know* facts. It learned statistical patterns about which words follow other words. When it says something wrong (a "hallucination"), it's because the pattern-matching led somewhere plausible-sounding but false. It's confidently autocompleting, not fact-checking.
+</Callout>
+
+## Why it feels like intelligence
+
+The jump from "next-word predictor" to "thing that can write essays and debug code" feels impossible. But think about it: to predict the next word *really well*, you need to understand a lot.
+
+To predict the next word in a math proof, you need to understand math. To predict the next line of Python, you need to understand Python. To predict the next sentence in an argument, you need to understand logic.
+
+Next-word prediction, at a large enough scale, *requires* understanding. Whether that's "real" understanding or just a very convincing imitation is still debated. But the practical result is the same: it works shockingly well.
+
+## Summary
+
+An LLM breaks text into tokens, converts them to number vectors (embeddings), runs them through a Transformer, and predicts the most likely next token. It learned to do this by practicing on trillions of words. That's the entire architecture behind every chatbot, code assistant, and AI writing tool you use.
+
+Next: [Training LLMs](/generative-ai/training-llms) — how a raw text predictor becomes a helpful assistant.

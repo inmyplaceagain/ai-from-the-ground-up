@@ -1,0 +1,78 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+The phone in your pocket has a neural processing unit that does 35-45 trillion operations per second. In 2026, we finally have the software to use it.
+
+On-device AI changes everything about mobile development. Zero latency. Full privacy. Works offline. No API bills.
+
+## The hardware is ready
+
+Every flagship phone in 2026 ships with a dedicated AI chip:
+
+| Device | NPU Performance |
+|--------|----------------|
+| Apple A18 Pro | 35 TOPS |
+| Qualcomm Snapdragon 8 Elite | 45 TOPS |
+| MediaTek Dimensity 9400 | 40 TOPS |
+
+These aren't marketing numbers. A 1.5-billion-parameter language model runs at ~12 tokens per second on an iPhone 16 Pro. Object detection runs in under 20 milliseconds on mid-range Android devices. That's faster than a network round-trip to any cloud API.
+
+## The software stack
+
+**CoreML 7** (iOS 19) introduced stateful models — multi-turn LLM conversations without reloading the full model context each time. Your on-device chatbot remembers what the user said three messages ago, just like a cloud LLM.
+
+**MLX** is Apple's open-source framework, and it's the real game changer. The key feature: zero-copy operations between CPU and GPU on Apple Silicon's unified memory architecture. You fine-tune a model on your Mac and deploy to iPhone using the exact same framework. No conversion step, no export headaches.
+
+**ExecuTorch** (from Meta) takes PyTorch models and optimizes them for mobile and edge devices. It supports hardware-specific acceleration through delegates — CoreML on iOS, XNNPACK for CPU, Qualcomm QNN for Snapdragon NPUs.
+
+## The quantization trick
+
+Here's why this all works. A 3.8-billion-parameter model at full precision (FP16) needs ~7.6 GB of memory. That's too much for a phone.
+
+But with 4-bit quantization — reducing each parameter from 16 bits to 4 bits — the same model fits in under 2 GB. The quality loss is minimal. You're trading a tiny amount of accuracy for a 4x reduction in size and a massive speed improvement.
+
+<CodeBlock language="python" title="Running a model on-device with MLX">
+{`import mlx.core as mx
+from mlx_lm import load, generate
+
+# Load a quantized model — fits in phone memory
+model, tokenizer = load("mlx-community/Phi-3.5-mini-4bit")
+
+# Generate text locally — no network, no API key, no cost
+response = generate(
+    model, tokenizer,
+    prompt="Summarize this meeting note:",
+    max_tokens=200
+)`}
+</CodeBlock>
+
+## Before and after
+
+**Before:** User takes a photo of a receipt. Your app sends the image to a cloud API (400ms+ latency), the API extracts the text and amounts, sends back structured data. If the user is offline — in a subway, on a plane, in a rural area — it doesn't work. You pay per API call. You handle their data in the cloud, which means privacy policies, GDPR compliance, data retention policies.
+
+**After:** The same receipt processing happens on the device in under 100ms. Works offline. No API cost. The user's data never leaves their phone. Your privacy policy is one sentence: "Your data stays on your device."
+
+<Callout type="tip" title="Models that fit on a phone">
+Phi-3.5-mini (3.8B), Gemma 2 2B, Qwen2.5-3B, Llama 3.2 1B/3B — all run comfortably on modern phones at 4-bit quantization. For many tasks, a 2.6B-parameter SLM outperforms 671B-parameter cloud models when fine-tuned for the specific domain.
+</Callout>
+
+## How it actually works (the theory)
+
+Three chapters explain the foundations:
+
+**[How LLMs Work](/generative-ai/how-llms-work)** — tokenization, embeddings, inference. Understanding the forward pass helps you estimate model latency and memory requirements on device.
+
+**[The Transformer](/deep-learning/the-transformer)** — the architecture these models use. Knowing how attention scales helps you choose the right model size for your device constraints.
+
+**[Training LLMs](/generative-ai/training-llms)** — pre-training and fine-tuning. Quantization is a post-training optimization that makes deployment possible. Understanding when and how to fine-tune a small model for your specific task is the highest-leverage skill.
+
+## What stays human
+
+**The cloud vs. device decision.** Not everything should run on-device. A complex multi-step reasoning task might need a large cloud model. A quick text classification should run locally. Knowing where each feature belongs is architecture, not engineering.
+
+**UX for AI features.** The model runs in 100ms, but should you show the result instantly, or add a subtle animation so the user trusts it more? Should the AI suggestion be prominent or subtle? Aggressive or conservative? These are design decisions that shape how users feel about your app.
+
+**Privacy architecture.** On-device processing is a privacy superpower, but it's not automatic. You still need to think about what data the model was trained on, what happens to the model's outputs, and whether any telemetry leaks information. Privacy is a system property, not a feature flag.
+
+The phone became a capable AI device. You decide what it should do with that capability.
+
+Next: [QA Engineer](/your-role/qa-engineer) — when the tests write themselves.

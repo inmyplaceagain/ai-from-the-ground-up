@@ -1,0 +1,76 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+If frontend got v0, backend got something arguably more impactful: AI that understands your database schema, your API contracts, and the cascade effects of every migration.
+
+## The new toolkit
+
+**Cursor Agent Mode** handles multi-file backend operations. Describe what you need — "add a subscription tier to the billing service with Stripe integration" — and it generates the model, migration, API endpoints, validation, and tests across multiple files. Not perfect every time, but a solid 80% starting point.
+
+**Supabase** became the default backend for AI applications in 2026. Why? Native pgvector support. You get a full Postgres database with built-in vector similarity search for embeddings — the foundation for any RAG pipeline. No separate vector database needed.
+
+**pganalyze** uses AI to analyze your actual Postgres workload and recommend specific indexes, vacuum settings, and query rewrites. Not generic advice — recommendations based on your real query patterns and data distribution.
+
+**Appwrite Cloud** shipped AI Builder in March 2026 — AI-powered database schema design that suggests relationships, indexes, and constraints based on your application's needs.
+
+## Before and after
+
+**Before:** You need to add a `subscription_tier` column to the users table (50M rows), update the billing service, add API endpoints, and write the migration. You manually write the migration script, test it against a staging database, check for cascade failures, plan a rollback strategy, update the ORM models, add validation. A day of careful work.
+
+**After:** You describe the change to Cursor. It generates a reversible migration with batched updates (it knows not to lock a 50M-row table), updates the ORM model, adds the API endpoints with proper validation, and writes tests. You review the migration plan, check the index strategy, verify the rollback works. Two hours including thorough review.
+
+<Callout type="info" title="The real number">
+63% of teams using AI migration tools cut unplanned downtime by 84%. The AI doesn't just write the migration — it predicts cascade failures you might miss.
+</Callout>
+
+## A concrete example
+
+Here's what AI-assisted backend development looks like in practice:
+
+<CodeBlock language="python" title="What you describe">
+{`# "Add a vector search endpoint for product recommendations
+#  using the existing products table in Supabase"
+
+# What the AI generates:
+from fastapi import FastAPI
+from supabase import create_client
+
+app = FastAPI()
+
+@app.post("/api/recommendations")
+async def get_recommendations(query: str, limit: int = 5):
+    # Generate embedding for the search query
+    embedding = await generate_embedding(query)
+
+    # pgvector similarity search — built into Supabase
+    results = supabase.rpc("match_products", {
+        "query_embedding": embedding,
+        "match_threshold": 0.78,
+        "match_count": limit,
+    }).execute()
+
+    return results.data`}
+</CodeBlock>
+
+The AI generated a working endpoint. Your job: Is 0.78 the right similarity threshold for your data? Should this be cached? What happens when the embedding service is down? Does this need rate limiting? Those are architecture decisions, not code generation tasks.
+
+## How it actually works (the theory)
+
+Two chapters are essential reading for backend developers:
+
+**[Memory & Context](/agentic-ai/memory-and-context)** — RAG pipelines, vector databases, embeddings. If you're building any AI-powered backend feature, this is the architecture chapter.
+
+**[From Chat to Agents](/agentic-ai/from-chat-to-agents)** — tool use, function calling, the ReAct pattern. Understanding this helps you design APIs that AI agents can actually use well.
+
+## What stays human
+
+**Data modeling.** AI can generate a schema. It can't decide whether your multi-tenant app should use row-level security, separate schemas, or separate databases. That depends on your compliance requirements, scale expectations, and team structure.
+
+**Security architecture.** AI doesn't understand your threat model. It doesn't know which endpoints handle PII, which services need mutual TLS, or why your auth flow has that extra verification step. Security is contextual — it requires understanding what you're protecting and from whom.
+
+**Domain constraints.** The AI doesn't know that in your fintech app, a balance can never go negative, that certain operations must be idempotent, or that regulatory requirements demand a specific audit trail format. Business logic is business knowledge, and that lives in your head and your team's conversations.
+
+**Operational judgment.** When the migration is running and something looks off — do you let it finish, pause it, or roll back? When traffic spikes and the database is at 90% CPU — do you scale up, optimize the hot query, or shed non-critical load? These are judgment calls with real consequences. AI can recommend. You decide.
+
+The infrastructure got smarter. The decisions got more important.
+
+Next: [Mobile Developer](/your-role/mobile-developer) — on-device models and the end of cloud dependency.

@@ -1,0 +1,67 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+47% of code is now fully AI-generated. If you're a frontend developer, that number either excites you or terrifies you.
+
+It should excite you. Here's why.
+
+## The new workflow
+
+The standard frontend stack in 2026 is React/Next.js + TypeScript + Tailwind + shadcn/ui. If you're already using this, you're in the sweet spot — every major AI coding tool is optimized for exactly this combination.
+
+**v0 by Vercel** is the tool that changed how frontends get built. You describe a component — "data table with sorting, filtering, pagination, and a search bar" — and get a complete, typed, accessible React component using shadcn/ui and Tailwind. Then you iterate conversationally: "add a date range filter," "make the rows selectable," "add an export button." Each iteration modifies the component intelligently rather than regenerating from scratch.
+
+**Claude Code** brings agentic coding to your terminal. It reads your codebase, understands your patterns, and makes multi-file changes — adding a feature across components, hooks, and tests in one go.
+
+**Cursor** integrates AI deeply into VS Code. Agent mode can refactor across files, and the inline editing feels like pair programming with someone who's read your entire codebase.
+
+## Before and after
+
+**Before:** You need a data table component with sorting, filtering, and pagination. You scaffold it, wire up state, handle edge cases (empty state, loading, error), add keyboard navigation, test across browsers. Solid 2-4 hours for a senior developer.
+
+**After:** You describe the table to v0. Thirty seconds later, you have a working component with TypeScript types, proper ARIA attributes, and responsive behavior. You iterate — "the filter should persist in the URL," "add a bulk actions toolbar." You paste the result into your Next.js project, adjust the data fetching to match your API, and you're done. The 4-hour task took 30 minutes.
+
+But here's the thing nobody talks about: that last step — "adjust to match your API" — is where the real work lives. Knowing your app's data flow, your error handling strategy, your state management patterns. That's the job. The component generation is the easy part now.
+
+<CodeBlock language="bash" title="A real workflow">
+{`# Generate a component
+# (v0, Claude Code, or Cursor — whatever fits the task)
+v0 "dashboard card grid with sparkline charts, responsive 3-col to 1-col"
+
+# Drop it into your project
+cp generated/dashboard-grid.tsx src/components/dashboard/
+
+# This is where YOUR expertise matters:
+# - Does it match your data fetching pattern?
+# - Does it handle your loading/error states correctly?
+# - Does it work with your auth context?
+# - Is the bundle size reasonable?
+# - Does it feel right when you use it?`}
+</CodeBlock>
+
+<Callout type="info" title="The new bottleneck">
+Code generation is essentially free now. The bottleneck moved to code **evaluation**. Can you read AI-generated code and quickly tell whether it's correct, performant, accessible, and fits your architecture? That's the skill that matters.
+</Callout>
+
+## How it actually works (the theory)
+
+Three chapters explain the tech powering your tools:
+
+**[How LLMs Work](/generative-ai/how-llms-work)** — next-token prediction, tokenization, embeddings. This is how Claude Code and Cursor understand your code.
+
+**[Using LLMs](/generative-ai/using-llms)** — temperature, context windows, prompt engineering. Understanding these makes you dramatically better at getting the output you want.
+
+**[The Transformer](/deep-learning/the-transformer)** — the architecture underneath. Self-attention is why the model can understand that a function call on line 50 relates to a type definition on line 3.
+
+## What stays human
+
+**Interaction design intuition.** The AI generates a dropdown. You know it should be a combobox because users are searching, not browsing. That distinction — knowing what the user actually needs — is design sense, not code generation.
+
+**Performance trade-offs.** The AI will happily render 10,000 rows in the DOM. You know to virtualize. You know when a bundle is too large, when an effect is running too often, when a layout is causing reflows. These are judgment calls informed by experience.
+
+**Accessibility beyond checklists.** AI adds ARIA labels. You know that screen reader users navigate your app differently, that focus management matters for keyboard users, that color contrast is necessary but not sufficient. Accessibility is empathy, not attributes.
+
+**The "almost right" detector.** The most valuable frontend skill in 2026 is looking at AI-generated code and knowing it's 90% right — and knowing exactly which 10% to fix. That requires deep understanding of both the code and the humans using it.
+
+You write less code than ever. The code you write matters more than ever.
+
+Next: [Backend Developer](/your-role/backend-developer) — APIs, databases, and migrations in the age of AI.

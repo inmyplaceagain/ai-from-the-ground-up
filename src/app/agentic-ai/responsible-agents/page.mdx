@@ -1,0 +1,151 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+A chatbot that gives a wrong answer is annoying. An agent that takes a wrong *action* can be costly. It can delete files, send emails, charge credit cards, deploy broken code.
+
+When you give a model the ability to *do things*, you need guardrails. Not because AI is dangerous in some sci-fi sense, but for the same reason you put validation on your API endpoints and review code before merging.
+
+## Human-in-the-loop
+
+The simplest and most effective guardrail: ask a human before doing anything important.
+
+<WebDevAnalogy webDev="Pull request review" ai="Human-in-the-loop">
+The agent writes the code, you review before merging. Nothing goes to production without a human looking at it. Same principle, same pattern.
+</WebDevAnalogy>
+
+In practice, this means categorizing actions by risk:
+
+| Risk level | Example | What to do |
+|---|---|---|
+| Low | Reading a file | Just do it |
+| Medium | Editing a file | Show the diff, ask to confirm |
+| High | Deleting a database | Require explicit approval |
+| Critical | Sending an email as the user | Multi-step confirmation |
+
+<CodeBlock language="javascript" title="Permission levels">
+{`const PERMISSIONS = {
+  read_file: "auto",      // no approval needed
+  edit_file: "confirm",   // show diff, ask once
+  delete_file: "approve", // explicit yes/no each time
+  send_email: "escalate", // require typed confirmation
+};
+
+async function executeAction(action, args) {
+  const level = PERMISSIONS[action.name];
+
+  if (level === "auto") return await action.run(args);
+  if (level === "confirm") {
+    showDiff(action, args);
+    if (await userConfirms()) return await action.run(args);
+  }
+  // ... and so on
+}`}
+</CodeBlock>
+
+This is exactly what Claude Code does. It reads files freely, asks before editing, and flags destructive operations.
+
+## Sandboxing
+
+Limit what the agent can access. Even with human approval, you don't want the agent to have *potential* access to things it shouldn't touch.
+
+- **File system**: restrict to the project directory. No reading `/etc/passwd`.
+- **Network**: allow specific APIs only. No arbitrary HTTP requests.
+- **Credentials**: pass credentials per-action, don't give the agent your AWS keys.
+- **Resources**: set CPU/memory limits. An agent in a loop can burn through compute.
+
+<Callout type="info" title="The principle of least privilege">
+Give the agent exactly the permissions it needs for its task, nothing more. You already follow this with IAM roles, database users, and API scopes. Same concept.
+</Callout>
+
+## Logging and auditability
+
+Every action the agent takes should be recorded. Not just "what" but "why" — the model's reasoning that led to the action.
+
+When something goes wrong (and it will), you need to answer: "Why did the agent do that?" If you can't reconstruct the decision chain, you can't fix the problem or prevent it from happening again.
+
+<CodeBlock language="javascript" title="Action logging">
+{`async function loggedAction(action, args, reasoning) {
+  const log = {
+    timestamp: Date.now(),
+    action: action.name,
+    args: args,
+    reasoning: reasoning,  // the model's explanation
+    user_approved: null,    // filled in after approval
+    result: null,           // filled in after execution
+  };
+
+  // Store BEFORE executing — if it crashes, you still have the attempt
+  await auditLog.write(log);
+
+  const result = await action.run(args);
+  await auditLog.update(log.id, { result });
+
+  return result;
+}`}
+</CodeBlock>
+
+<WebDevAnalogy webDev="Structured application logging" ai="Agent audit trail">
+You already log every API request, every database query, every error. Agent actions are just another type of operation to log. Same tools, same patterns, same dashboards.
+</WebDevAnalogy>
+
+## Budget and rate limits
+
+Agents can be expensive. A model call costs money. A tool call takes time. An agent in a loop can rack up hundreds of API calls.
+
+Set hard limits:
+
+- **Token budget**: "This task can use at most 100K tokens."
+- **Iteration limit**: "Stop after 20 tool calls."
+- **Time limit**: "Give up after 5 minutes."
+- **Cost cap**: "Don't spend more than $2 on this task."
+
+When the agent hits a limit, it should stop gracefully and tell the user what it accomplished and what's left.
+
+## Content filtering
+
+Agents that generate user-facing content need output filters. Not just for safety, but for quality:
+
+- Does the response contain information the user shouldn't see (internal data, other users' information)?
+- Is the response appropriate for the context (a support agent shouldn't use casual slang)?
+- Does it make promises the system can't keep ("I've refunded your order" when it didn't)?
+
+These aren't AI-specific problems. They're the same content validation rules you'd put on any user-generated content.
+
+## Governance: who's responsible?
+
+When an agent makes a mistake, who's accountable?
+
+The short answer: **the person who deployed it.** The agent is a tool. If you give a tool access to production data and it does something wrong, that's on you — just like a script you wrote and deployed.
+
+This means:
+
+- **Test agents** in staging environments before production
+- **Document** what the agent can do and what guardrails are in place
+- **Monitor** agent actions in production
+- **Have a kill switch** — a way to immediately disable the agent
+
+<Callout type="warning" title="The honest reality">
+We're still figuring governance out. The technology moves faster than frameworks and regulations. But "we're figuring it out" isn't an excuse to skip it. Building agents without safety layers is like deploying to production without monitoring — technically possible, practically irresponsible.
+</Callout>
+
+## A checklist for production agents
+
+Before deploying an agent to production, check these:
+
+- **Permissions**: are actions categorized by risk? Do dangerous ones require approval?
+- **Sandboxing**: is the agent restricted to only what it needs?
+- **Logging**: is every action logged with reasoning?
+- **Limits**: are there token, iteration, time, and cost caps?
+- **Monitoring**: can you see what the agent is doing in real time?
+- **Kill switch**: can you stop it immediately?
+- **Testing**: have you tested edge cases? What happens when the model hallucinates a tool call?
+- **Fallback**: when the agent fails, does it fail gracefully?
+
+None of these are new ideas. They're the same reliability engineering principles you'd apply to any production system. The model is just another service in your architecture.
+
+## Summary
+
+Agents that act in the real world need guardrails: human-in-the-loop for risky actions, sandboxing for access control, logging for auditability, and budgets for cost control. The person who deploys the agent is responsible for what it does. These aren't new concepts — they're the same reliability and security principles you already use, applied to a new kind of tool.
+
+---
+
+That's the end of the course. You've gone from perceptrons to agents — from a single function that draws a line, to systems that plan, reason, remember, and act. The technology will keep evolving, but the foundations don't change. Understanding them means you'll be able to build on whatever comes next.

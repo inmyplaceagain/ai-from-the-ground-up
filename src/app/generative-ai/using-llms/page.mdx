@@ -1,0 +1,123 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+You know how LLMs work. You know how they're trained. Now let's cover the stuff you actually need as a developer using them every day.
+
+## Temperature
+
+Remember, the model outputs probabilities for every possible next token. Temperature controls how it picks from those probabilities.
+
+- **Temperature 0**: Always pick the most probable token. Deterministic. Same input → same output. Best for code, factual answers, anything where you want consistency.
+- **Temperature 1**: Sample proportionally from the probabilities. More varied, more creative, occasionally weird. Good for brainstorming, creative writing.
+- **Temperature > 1**: Even the unlikely tokens get a shot. Things get wild. Rarely useful.
+
+Think of it like a volume knob for randomness. Turn it down for precision work, up for creative work.
+
+## Top-p (nucleus sampling)
+
+Instead of looking at *all* possible next tokens, only consider the smallest set whose probabilities add up to `p`.
+
+With `top_p = 0.9`, the model ignores the bottom 10% of unlikely tokens. This cuts off the nonsensical options while still allowing variety.
+
+Most APIs let you set both temperature and top-p. In practice, adjusting one is usually enough — keep the other at its default.
+
+## Context window
+
+The context window is how many tokens the model can "see" at once. Everything — your system prompt, the conversation history, the user's message, *and* the model's response — has to fit.
+
+<WebDevAnalogy webDev="RAM — fixed amount, everything has to fit" ai="Context window — fixed token limit, all text has to fit">
+A 128K context window is like having 128K of RAM for text. Your system prompt, chat history, and response all share that space. Run out and the oldest context falls off.
+</WebDevAnalogy>
+
+Typical context windows:
+- **8K tokens** — older models, roughly 6,000 words
+- **128K tokens** — most current models, roughly 96,000 words (a whole novel)
+- **200K tokens** — some models go even bigger
+
+More context = the model can consider more information at once. But there are tradeoffs: longer context is slower, more expensive, and models sometimes struggle to find specific details buried in the middle of very long inputs.
+
+## Making API calls
+
+Here's what a basic API call looks like:
+
+<CodeBlock language="javascript" title="Calling an LLM API">
+{`const response = await fetch("https://api.anthropic.com/v1/messages", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": process.env.ANTHROPIC_API_KEY,
+    "anthropic-version": "2023-06-01"
+  },
+  body: JSON.stringify({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1024,
+    messages: [
+      { role: "user", content: "Explain REST APIs in one sentence." }
+    ]
+  })
+});
+
+const data = await response.json();
+console.log(data.content[0].text);`}
+</CodeBlock>
+
+That's it. You send messages, you get text back. Every LLM API works this way — the details differ but the shape is the same.
+
+## System prompts
+
+The **system prompt** is the hidden instruction that shapes the model's behavior for the entire conversation. The user never sees it.
+
+<CodeBlock language="json" title="Messages with a system prompt">
+{`{
+  "system": "You are a senior code reviewer. Be concise. Point out bugs and suggest fixes. Don't explain what the code does — the developer already knows.",
+  "messages": [
+    { "role": "user", "content": "Review this function: ..." }
+  ]
+}`}
+</CodeBlock>
+
+System prompts are your main tool for customizing behavior. Think of them as the *interface design* for your AI feature — you're designing the input that produces the right output.
+
+## Prompt engineering
+
+Prompt engineering isn't magic. It's just being clear about what you want. A few patterns that reliably work:
+
+**Few-shot examples** — show the model what you want by giving it examples:
+
+<CodeBlock language="text" title="Few-shot prompting">
+{`Convert these product descriptions to JSON:
+
+"Red running shoes, size 10, $89.99"
+→ {"item": "running shoes", "color": "red", "size": 10, "price": 89.99}
+
+"Blue denim jacket, large, $120"
+→ {"item": "denim jacket", "color": "blue", "size": "large", "price": 120}
+
+"Black leather wallet, $45"
+→`}
+</CodeBlock>
+
+**Chain of thought** — tell the model to think step by step. This dramatically improves accuracy on complex problems:
+
+<CodeBlock language="text" title="Chain of thought">
+{`Think step by step before answering.
+
+Q: If a store has 3 shelves with 8 items each, and removes 5 items, how many are left?`}
+</CodeBlock>
+
+**Be specific** — "Write a good email" is vague. "Write a 3-sentence email declining a meeting invitation, professional but friendly tone" is actionable.
+
+<Callout type="tip" title="The golden rule of prompting">
+If a human would need to ask follow-up questions to do the task, your prompt is too vague. Include everything a contractor would need to deliver exactly what you want.
+</Callout>
+
+## Tokens and cost
+
+You pay per token — both input (what you send) and output (what the model generates). Input tokens are usually cheaper than output tokens.
+
+A rough mental model: a short chat exchange might use 500 tokens ($0.001). A long conversation with a lot of context might use 50,000 tokens ($0.10). Summarizing a long document might use 100,000+ tokens ($0.25+). Prices vary by model — smaller models are cheaper, bigger models are smarter.
+
+## Summary
+
+Temperature controls randomness. Top-p filters unlikely tokens. Context windows limit how much text the model sees. System prompts shape behavior. Prompt engineering is about being clear and specific. You pay per token. That's the practical toolkit for working with LLMs as a developer.
+
+Next: [Diffusion Models](/generative-ai/diffusion-models) — how AI generates images by learning to remove noise.

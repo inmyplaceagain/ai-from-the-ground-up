@@ -1,0 +1,118 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Here's the uncomfortable truth about LLMs: they have no memory. Every conversation starts from zero. The model doesn't remember your name, your project, or the bug you discussed yesterday.
+
+Even within a single conversation, there's a limit. The **context window** — the amount of text the model can see at once — is finite. Maybe 100K tokens, maybe 200K. Sounds like a lot until you're feeding in a whole codebase.
+
+So how do agents remember things? The same way you'd solve it as a web developer: a database.
+
+## Short-term memory: the context window
+
+The simplest "memory" is just the conversation itself. Every message you send, every tool result, every model response — it all stays in the context window until it fills up.
+
+This is like keeping everything in a JavaScript variable. Fast, easy, but limited. When the conversation gets too long, old messages get dropped or summarized.
+
+<WebDevAnalogy webDev="In-memory cache (Redis)" ai="Context window">
+The context window is your Redis. Fast access, limited size, gone when the session ends. Good for the current task, bad for long-term storage.
+</WebDevAnalogy>
+
+## Long-term memory: vector databases
+
+For anything beyond the current conversation, you need persistent storage. But here's the thing — you can't just use a regular SQL query. When someone asks "what did we discuss about the authentication refactor?", there's no column to match against.
+
+You need **semantic search** — finding content by meaning, not keywords.
+
+This is where **embeddings** come in. An embedding model converts text into a list of numbers (a vector) that captures its meaning. Similar ideas end up as similar vectors, even if they use completely different words.
+
+<CodeBlock language="javascript" title="How embeddings work">
+{`// "The cat sat on the mat" → [0.2, -0.5, 0.8, 0.1, ...]
+// "A kitten rested on a rug"  → [0.19, -0.48, 0.79, 0.12, ...]
+// "JavaScript async/await"    → [-0.7, 0.3, -0.2, 0.6, ...]
+
+// The first two are close together in vector space.
+// The third one is far away. That's the whole idea.`}
+</CodeBlock>
+
+A **vector database** stores these embeddings and lets you search by similarity: "find me the 5 documents most similar to this query." It's like a search engine that understands meaning.
+
+<Callout type="tip" title="You already know this pattern">
+If you've ever used Elasticsearch with fuzzy matching or a recommendation engine ("users who liked X also liked Y"), you've used the same concept. Vector databases just do it with AI-generated embeddings instead of hand-crafted features.
+</Callout>
+
+## RAG: Retrieval-Augmented Generation
+
+Now we put it together. **RAG** is the most important pattern in applied AI right now. Here's how it works:
+
+1. **Store**: Take your documents (docs, code, emails, whatever), split them into chunks, convert each chunk to an embedding, and store them in a vector database.
+2. **Retrieve**: When the user asks a question, convert their question to an embedding, search the vector database for similar chunks.
+3. **Generate**: Stuff those chunks into the prompt alongside the user's question. The model now has the relevant context to answer.
+
+<CodeBlock language="javascript" title="A RAG pipeline in ~15 lines">
+{`async function askWithRAG(question) {
+  // 1. Convert question to embedding
+  const queryVector = await embed(question);
+
+  // 2. Find relevant documents
+  const relevantDocs = await vectorDB.search(queryVector, { limit: 5 });
+
+  // 3. Build the prompt with retrieved context
+  const prompt = \`
+    Use the following documents to answer the question.
+    If the answer isn't in the documents, say so.
+
+    Documents:
+    \${relevantDocs.map(d => d.text).join("\\n\\n")}
+
+    Question: \${question}
+  \`;
+
+  // 4. Generate the answer
+  return await model.generate(prompt);
+}`}
+</CodeBlock>
+
+<WebDevAnalogy webDev="Search API + template rendering" ai="RAG pipeline">
+RAG is exactly what you do in server-side rendering: fetch data from a database, inject it into a template, render the result. The only difference is the "database" uses semantic search and the "template" is a prompt.
+</WebDevAnalogy>
+
+## Chunking: the hidden complexity
+
+That "split them into chunks" step is where things get tricky. Split too small and you lose context. Split too big and your search results are noisy.
+
+Common strategies:
+
+- **Fixed size**: every 500 tokens. Simple but dumb — might split mid-sentence.
+- **By paragraph or section**: respect natural boundaries. Better, but inconsistent sizes.
+- **Overlapping windows**: each chunk overlaps with the next by 50-100 tokens. Helps with context at boundaries.
+- **Semantic**: use the model to identify natural breakpoints. Best results, most expensive.
+
+In practice, paragraph-level chunking with small overlaps works well for most use cases.
+
+## What about conversation history?
+
+For remembering past conversations, the pattern is simpler:
+
+1. After each conversation, summarize it and store the summary.
+2. Before a new conversation, search for relevant past summaries.
+3. Include them in the system prompt: "Here's what you discussed previously..."
+
+Some agents also extract specific facts ("user prefers TypeScript", "project uses PostgreSQL") and store those as structured data. That way the agent can retrieve facts directly instead of searching through conversation logs.
+
+## The memory hierarchy
+
+Think of agent memory like computer memory:
+
+| Layer | Speed | Size | Persistence | Example |
+|-------|-------|------|-------------|---------|
+| Context window | Instant | Limited | Session only | Current conversation |
+| Vector DB | Fast | Large | Permanent | Past conversations, docs |
+| Structured DB | Fast | Large | Permanent | User preferences, facts |
+| Full documents | Slow | Huge | Permanent | Original source files |
+
+Good agent architecture uses all of these, routing queries to the right layer.
+
+## Summary
+
+LLMs forget everything between conversations. You fix this with the same tools you already know: databases and search. RAG — retrieve relevant docs, stuff them in the prompt, generate — is the core pattern. The trick is in chunking your data well and searching effectively.
+
+Next: [Planning & Reasoning](/agentic-ai/planning-and-reasoning) — how agents break complex tasks into steps and think through problems.

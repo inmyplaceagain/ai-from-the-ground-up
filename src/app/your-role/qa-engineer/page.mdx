@@ -1,0 +1,100 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+If you're a QA engineer reading AI headlines, you've probably seen "AI will replace testers" at least fifty times. Here's what's actually happening: AI is replacing the *boring* parts of your job — writing boilerplate Playwright scripts, updating selectors when the UI changes, running the same smoke tests for the hundredth time.
+
+The interesting parts? Those are more yours than ever.
+
+## The old way
+
+You know the drill. Product ships a new checkout flow. You write Playwright scripts by hand:
+
+<CodeBlock language="javascript" title="The manual way">
+{`test('user can complete checkout', async ({ page }) => {
+  await page.goto('/products');
+  await page.click('[data-testid="add-to-cart"]');
+  await page.click('[data-testid="cart-icon"]');
+  await page.click('text=Checkout');
+  await page.fill('#email', 'test@example.com');
+  // ... 40 more lines of selectors
+  await expect(page.locator('.confirmation')).toBeVisible();
+});`}
+</CodeBlock>
+
+Then the design team changes the button text. Or moves the cart icon. Or renames a `data-testid`. Your tests break. You spend half your sprint fixing tests instead of finding bugs.
+
+## What changed in 2026
+
+The phrase you'll hear everywhere is **agentic QA**. Instead of recording clicks or writing scripts, you describe what you want to test — and an AI agent figures out how.
+
+<CodeBlock language="text" title="How you talk to Qase AI now">
+{`Goal: "User logs in, adds an item to cart, completes checkout
+      with a credit card, and sees the confirmation page."
+
+The agent:
+1. Plans the test steps
+2. Writes the Playwright code
+3. Runs it against your staging environment
+4. When the UI changes next week, updates the selectors itself`}
+</CodeBlock>
+
+This isn't a demo. Qase AI's Agentic Mode has been live since January 2026. It mixes UI testing, API testing, and performance checks in the same run. QA Wolf does something similar — it generates Playwright tests and maintains them when your app changes.
+
+## The tools
+
+- **Qase AI Agentic Mode** — takes plain-language goals, plans its own test strategy, mixes UI + API + performance testing
+- **QA Wolf** — Playwright-based agentic test generation and ongoing maintenance
+- **Applitools Autonomous** — AI visual regression testing (spots layout shifts humans miss)
+- **KaneAI** — natural-language goals to cross-platform test execution (web, mobile, API)
+
+The pattern across all of them: you describe *intent*, the agent handles *implementation*.
+
+## Multi-agent testing
+
+Here's where it gets interesting. Modern QA agents don't work alone. A planning agent breaks down your test goal into subtasks. Then specialized agents handle each one in parallel:
+
+- One agent tests the web UI
+- Another hits the API directly
+- A third checks mobile responsiveness
+- A fourth monitors performance metrics
+
+They report back to the planner, which decides if the feature is ready. If something fails, it investigates before reporting — was it a real bug or a flaky test?
+
+<WebDevAnalogy webDev="CI/CD pipeline with parallel jobs" ai="Multi-agent test orchestration">
+You already run linting, type checking, and unit tests in parallel. Agentic QA does the same thing but for end-to-end flows — each agent is a specialist that runs simultaneously.
+</WebDevAnalogy>
+
+## Before and after
+
+| | Before | After |
+|---|--------|-------|
+| **Writing tests** | Hand-coded Playwright scripts | Describe the goal in English |
+| **Maintenance** | Fix broken selectors every sprint | Agent updates tests when UI changes |
+| **Coverage** | Whatever you had time to write | Agent suggests gaps you missed |
+| **Visual regression** | Manual screenshot comparison | AI spots layout shifts automatically |
+| **Reporting** | You write the bug report | Agent includes repro steps and context |
+
+## What stays human
+
+AI can execute a test plan. It can't decide what's worth testing.
+
+That intuition you've built — the one that says "this edge case will break in production" or "users will definitely try to submit this form twice" — that's not automatable. You understand the *product* in a way that an agent scanning the DOM never will.
+
+Your role is shifting from **test writer** to **test strategist**:
+
+- Defining what "correct" actually means for your product
+- Spotting edge cases that come from understanding user behavior
+- Deciding what *not* to test (because not everything is worth the maintenance cost)
+- Evaluating whether the AI's test coverage actually catches real bugs
+
+<Callout type="tip" title="Your expertise is the input now">
+The better you understand the product, the better your test goals are, and the better the agent performs. Your domain knowledge just became the highest-leverage skill on the team.
+</Callout>
+
+## Go deeper
+
+The theory behind agentic QA lives in the course:
+- [From Chat to Agents](/agentic-ai/from-chat-to-agents) — the ReAct pattern that powers these test agents
+- [Planning & Reasoning](/agentic-ai/planning-and-reasoning) — how agents decompose "test the checkout flow" into steps
+- [Responsible Agents](/agentic-ai/responsible-agents) — why human-in-the-loop matters for test strategy
+
+Next up: [DevOps & SRE](/your-role/devops-sre) — how AI handles incident response so you can sleep through the night.

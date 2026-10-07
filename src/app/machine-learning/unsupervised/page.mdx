@@ -1,0 +1,111 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Everything so far has been supervised — you give the model labeled examples and it learns to predict labels. But what if you don't have labels?
+
+You just have a pile of data and you want to find **structure**. Groups. Patterns. Things you didn't know were there.
+
+That's unsupervised learning. No right answers to train on. Just "here's the data, what do you see?"
+
+## Clustering: finding groups
+
+The most common unsupervised task is **clustering** — putting similar things into groups.
+
+Think of it like sorting laundry. Nobody gives you a rulebook. You just look at the pile and naturally group things: darks here, whites there, delicates separate. You're finding structure based on similarity.
+
+**K-means** is the simplest clustering algorithm. Here's the whole thing:
+
+1. Pick **k** (how many groups you want)
+2. Drop k random points — these are your initial cluster centers
+3. Assign each data point to its nearest center
+4. Move each center to the middle of its assigned points
+5. Repeat steps 3-4 until the centers stop moving
+
+That's it. After a few rounds, the centers settle and you have your clusters.
+
+<CodeBlock language="python" title="K-means clustering">
+{`from sklearn.cluster import KMeans
+import numpy as np
+
+# Customer data: [age, spending_score]
+customers = np.array([
+    [25, 80], [30, 75], [28, 90],   # young, high spenders
+    [55, 20], [60, 15], [58, 25],   # older, low spenders
+    [35, 50], [40, 45], [38, 55],   # middle
+])
+
+model = KMeans(n_clusters=3)
+model.fit(customers)
+
+print(model.labels_)         # [0, 0, 0, 1, 1, 1, 2, 2, 2]
+print(model.cluster_centers_) # center of each group`}
+</CodeBlock>
+
+You told it "find 3 groups" and it found young high-spenders, older low-spenders, and the middle group. You didn't label any of this — it just found the natural clusters.
+
+<WebDevAnalogy webDev="CSS Grid auto-placement" ai="K-means clustering">
+CSS Grid with auto-fit groups items into rows and columns without you specifying each position. K-means does the same with data — it figures out the natural groupings without you defining them.
+</WebDevAnalogy>
+
+## The catch with k-means
+
+You have to pick **k** — how many clusters. But how do you know the right number?
+
+Common approaches:
+- **Try a few and see.** Plot the results for k = 2, 3, 4, 5 and see which makes sense.
+- **Elbow method.** Plot the total distance of points to their centers for each k. It usually drops fast then levels off — the "elbow" is a good k.
+- **Domain knowledge.** You might know your customers fall into roughly 4 segments.
+
+There's no magic answer. It depends on your data and what's useful.
+
+## Dimensionality reduction: simplifying data
+
+The other big unsupervised technique is **dimensionality reduction**. Fancy name, simple idea:
+
+You have data with 100 features (columns). But most of the interesting variation is captured by just 2-3 of them. Dimensionality reduction finds those 2-3 directions that matter most.
+
+Think of it like data compression. An MP3 throws away the frequencies you can't hear and keeps the ones you can. **PCA** (Principal Component Analysis) throws away the directions in your data that don't vary much and keeps the ones that do.
+
+<CodeBlock language="python" title="PCA: 4 dimensions → 2">
+{`from sklearn.decomposition import PCA
+from sklearn.datasets import load_iris
+
+# Iris dataset: 4 features (sepal/petal length/width)
+data = load_iris()
+X = data.data  # 150 samples, 4 features
+
+# Reduce to 2 dimensions
+pca = PCA(n_components=2)
+X_2d = pca.fit_transform(X)  # now 150 samples, 2 features
+
+# You can plot X_2d on a regular 2D chart
+# and see the three flower species separate naturally`}
+</CodeBlock>
+
+<Callout type="tip" title="Why this matters in practice">
+When you have data with hundreds of features, you can't visualize it. PCA lets you squish it down to 2D so you can actually plot it and see patterns. It's also used as a preprocessing step — feeding 2 features into a model is faster and often works better than feeding 100.
+</Callout>
+
+## Real uses you've seen
+
+Unsupervised learning is everywhere:
+
+- **Customer segmentation** — group users by behavior for marketing
+- **Anomaly detection** — find the data points that don't fit any cluster (fraud, outages)
+- **Recommendation engines** — "users who liked X also liked Y" is a clustering problem
+- **Topic modeling** — group documents by topic without reading them
+- **Embeddings** — the word and image embeddings that power modern AI are unsupervised (we'll see these in the generative AI chapters)
+
+## The difference, summarized
+
+| | Supervised | Unsupervised |
+|---|---|---|
+| **You give it** | Data + labels | Just data |
+| **It finds** | How to predict labels | Hidden structure |
+| **Example** | "This email is spam" | "These emails are similar" |
+| **You know** | What you're looking for | You're exploring |
+
+## Summary
+
+Unsupervised learning finds patterns in data without labels. Clustering (k-means) groups similar things together. Dimensionality reduction (PCA) compresses data down to the dimensions that matter. You'll see both ideas resurface later — word embeddings, image features, and latent spaces in generative AI all build on these foundations.
+
+Next: [The ML Workflow](/machine-learning/ml-workflow) — the practical stuff: splitting data, avoiding overfitting, and evaluating your model properly.

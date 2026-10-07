@@ -1,0 +1,78 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+It's 3 AM. An alert fires. Your phone buzzes. You open your laptop, squint at Grafana dashboards, grep through logs across four services, and 45 minutes later you find the root cause: a misconfigured connection pool after last week's deploy.
+
+In 2026, that 45-minute investigation takes about 90 seconds. And you don't even have to wake up.
+
+## What AI incident response actually looks like
+
+The shift this year isn't "AI monitors your dashboards" — monitoring tools have done that for years. The shift is **autonomous investigation**. When an alert fires, an AI agent doesn't just tell you something is wrong. It investigates *why*.
+
+<CodeBlock language="text" title="An actual incident flow in 2026">
+{`3:02 AM — Alert: API latency p99 > 2s
+
+AI agent (NudgeBee):
+1. Checks which services are affected → payment-service, order-service
+2. Runs: kubectl logs payment-service --since=5m | grep ERROR
+3. Finds: "connection pool exhausted" errors spiking at 3:00 AM
+4. Cross-references: deploy at 2:58 AM changed pool size from 50 → 10
+5. Proposes: "Root cause: deploy reduced connection pool. 
+   Recommended fix: rollback to previous config."
+6. Waits for your approval before executing the rollback.`}
+</CodeBlock>
+
+Notice step 6. The agent doesn't just fix things on its own. It proposes a fix and waits. That approval gate is the difference between a helpful tool and a terrifying one.
+
+## The tools
+
+- **Rootly** — AI incident management inside Slack/Teams. Auto-summarizes the incident, posts status updates, and drafts the postmortem when it's over
+- **NudgeBee** — the one that actually investigates. It runs real diagnostic commands against your infrastructure, not just log analysis. Plans its own investigation, root-causes with evidence, and proposes remediation with an approval gate
+- **StackGen / Aiden** — auto-correlates signals across monitoring tools and executes remediation playbooks. Teams report 40-60% reduction in mean time to resolution
+
+The common pattern: the agent does the tedious correlation work (reading logs across services, checking recent deploys, comparing metrics). You make the decision.
+
+## Before and after
+
+| | Before | After |
+|---|--------|-------|
+| **Detection** | Alert fires, you read it | Same alert, AI starts investigating immediately |
+| **Investigation** | Manually grep logs, check dashboards, correlate across services | Agent runs diagnostics, cross-references deploys, finds root cause |
+| **Communication** | You write the status update at 3 AM while debugging | Agent posts a summary to the incident channel |
+| **Remediation** | You write and apply the fix | Agent proposes fix, you approve with one click |
+| **Postmortem** | You write it three days later from memory | Agent drafts it with timeline, root cause, and action items |
+
+<WebDevAnalogy webDev="A senior engineer who's always on call" ai="AI incident responder">
+Think of it like having a teammate who never sleeps, reads logs faster than you, and always writes up their findings before paging you. They just need your sign-off before touching production.
+</WebDevAnalogy>
+
+## IaC and beyond
+
+Incident response gets the headlines, but AI is changing the quieter parts of DevOps too:
+
+- **Infrastructure as Code generation** — describe what you need ("a Kubernetes cluster with 3 nodes, autoscaling, and a PostgreSQL database"), get the Terraform or Pulumi code
+- **Monitoring setup** — AI suggests alerts based on your service topology and past incidents
+- **Cost optimization** — agents analyze your cloud spend and suggest right-sizing
+
+<Callout type="info" title="The MTTR numbers are real">
+Teams using AI-assisted incident response report 40-60% reduction in mean time to resolution. That's not because the AI is smarter — it's because it starts investigating the moment the alert fires, not 10 minutes later when a human reads the page.
+</Callout>
+
+## What stays human
+
+AI can investigate an incident. It can't design the architecture that prevents the next one.
+
+The human parts of DevOps and SRE aren't going anywhere:
+
+- **Architecture decisions** — should this be a monolith or microservices? What's the right level of redundancy? Where do you draw service boundaries?
+- **Capacity planning** — understanding growth patterns and making infrastructure bets
+- **Security posture** — deciding trust boundaries, access patterns, secrets management
+- **Automation judgment** — which remediations are safe to automate vs. which need a human every time? A rollback is usually safe. A database migration rollback is not
+
+The AI handles the 3 AM investigation. You design the systems that make incidents rare in the first place.
+
+## Go deeper
+
+- [Multi-Agent Systems](/agentic-ai/multi-agent-systems) — how investigation agents orchestrate across services
+- [Responsible Agents](/agentic-ai/responsible-agents) — human-in-the-loop and sandboxing, the principles behind approval gates
+
+Next up: [Data Analyst](/your-role/data-analyst) — when the question is in English and the answer is a chart.

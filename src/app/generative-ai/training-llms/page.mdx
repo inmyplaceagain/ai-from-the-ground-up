@@ -1,0 +1,84 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+Training an LLM happens in three phases. Each one shapes the model in a different way, and understanding them explains why models behave the way they do.
+
+## Phase 1: Pre-training
+
+This is the expensive one. You take a model with billions of parameters (all set to random numbers) and show it the internet.
+
+The task is simple: given some text, predict the next word. The model reads "The capital of France is" and guesses "Paris." If it's wrong, adjust the parameters slightly. Repeat this trillions of times.
+
+<WebDevAnalogy webDev="npm install — downloading everything you might need" ai="Pre-training — absorbing all of human knowledge">
+Pre-training is like the world's longest `npm install`. The model downloads a rough version of everything — language, facts, code, reasoning. It's not organized yet, but it's all in there.
+</WebDevAnalogy>
+
+The numbers are staggering:
+- **Data**: trillions of tokens from books, websites, code
+- **Time**: weeks to months on thousands of GPUs
+- **Cost**: tens to hundreds of millions of dollars
+- **Result**: a model that can complete any text plausibly
+
+After pre-training, you have what's called a **base model**. It's incredibly capable — but it's not useful yet. Ask it a question and it might continue your text as if it's a Wikipedia article, or a Reddit thread, or a textbook. It doesn't know it's supposed to be *helpful*.
+
+## Phase 2: Fine-tuning
+
+Take the base model and train it a bit more — but this time on a much smaller, carefully curated dataset of examples that show the behavior you want.
+
+For a chat assistant, this means thousands of examples of:
+- A human asks a question → The assistant gives a helpful answer
+- A human gives a coding task → The assistant writes clean code
+- A human asks something harmful → The assistant politely declines
+
+<CodeBlock language="json" title="A fine-tuning example">
+{`{
+  "messages": [
+    {"role": "user", "content": "Explain git rebase in one sentence."},
+    {"role": "assistant", "content": "Git rebase replays your branch's commits on top of another branch, creating a linear history instead of a merge commit."}
+  ]
+}`}
+</CodeBlock>
+
+This is called **supervised fine-tuning** (SFT) — you're showing the model exactly what good behavior looks like. It's like onboarding a new hire: they already have the skills (from pre-training), you're just showing them how the job works here.
+
+Fine-tuning is fast and cheap compared to pre-training. Hours instead of months. Thousands of dollars instead of millions.
+
+## Phase 3: RLHF
+
+Here's the problem with fine-tuning: you're limited by however many perfect examples humans can write. And for many questions, there isn't one right answer — there are better and worse answers.
+
+**RLHF** (Reinforcement Learning from Human Feedback) solves this differently. Instead of writing perfect answers, humans just *rank* them.
+
+The process:
+1. Give the model a prompt
+2. It generates several different responses
+3. A human ranks them: "This one is best, this one is okay, this one is bad"
+4. Train a separate **reward model** that learns to predict which answers humans prefer
+5. Use that reward model to train the LLM to produce higher-ranked responses
+
+<Callout type="info" title="Why rankings are easier than writing">
+Judging two restaurant reviews and picking the better one is *much* easier than writing a perfect review from scratch. RLHF exploits this asymmetry — it's easier to evaluate quality than to produce it.
+</Callout>
+
+RLHF is what turns a knowledgeable-but-unpredictable base model into something that feels like a helpful assistant. It learns to be clear, honest, safe, and to say "I don't know" when appropriate.
+
+## DPO: The simpler alternative
+
+**DPO** (Direct Preference Optimization) is a newer approach that skips the reward model entirely. Instead of training a separate model to predict human preferences and then using that to train the LLM, DPO trains the LLM directly on the preference data.
+
+It's mathematically equivalent (roughly) but simpler to implement and more stable to train. Many newer models use DPO instead of RLHF.
+
+## The key insight
+
+The base model is already incredibly capable after pre-training. Fine-tuning and RLHF don't teach it new knowledge — they just **steer** it.
+
+Think of it this way: pre-training gives the model all the skill. Fine-tuning and RLHF give it manners.
+
+<WebDevAnalogy webDev="eslint + prettier — doesn't change what code can do, just shapes how it presents" ai="RLHF — doesn't add knowledge, just shapes how the model presents answers">
+Your code works fine without a linter. But eslint and prettier make the output consistently clean and useful. RLHF does the same thing for a language model's responses.
+</WebDevAnalogy>
+
+## Summary
+
+LLM training is three phases: pre-training (learn everything from predicting text, costs millions), fine-tuning (learn good behavior from curated examples, costs thousands), and RLHF/DPO (learn what humans prefer from rankings, the final polish). The base model has all the capability; the later phases just aim it.
+
+Next: [Using LLMs](/generative-ai/using-llms) — the practical stuff: temperature, context windows, and prompt engineering.

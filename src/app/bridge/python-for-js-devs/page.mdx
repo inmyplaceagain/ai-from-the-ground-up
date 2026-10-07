@@ -1,0 +1,128 @@
+import { Callout, WebDevAnalogy, CodeBlock, InteractiveContainer } from "@/components/mdx";
+
+AI runs on Python. Not because Python is better — because that's where all the libraries are. The good news: if you know JavaScript, you already know 80% of Python. Let's cover the other 20%.
+
+## Variables and types
+
+No `let`, `const`, or `var`. Just write the name.
+
+<CodeBlock language="python" title="Python">
+{`name = "Denis"
+age = 30
+is_dev = True    # not 'true', capital T
+items = [1, 2, 3]  # like a JS array
+config = {"key": "value"}  # like a JS object`}
+</CodeBlock>
+
+Python uses `True`, `False`, and `None` (not `true`, `false`, `null`).
+
+## Functions
+
+Same idea, different syntax. Indentation replaces braces — this is the one thing that trips up JS devs the most.
+
+<CodeBlock language="python" title="Python">
+{`def greet(name, excited=False):
+    if excited:
+        return f"HEY {name}!"
+    return f"Hello, {name}"
+
+# f-strings are like template literals
+# f"Hello, {name}" === \`Hello, \${name}\``}
+</CodeBlock>
+
+<Callout type="warning" title="Indentation is syntax">
+In Python, indentation isn't style — it's how the language knows what's inside a block. Use 4 spaces. No braces, no semicolons. If your code isn't indented right, it won't run.
+</Callout>
+
+## Lists and dicts
+
+Python lists are JS arrays. Python dicts are JS objects.
+
+<CodeBlock language="python" title="Python">
+{`# Lists (arrays)
+nums = [1, 2, 3]
+nums.append(4)         # push
+nums[0]                # 1
+len(nums)              # length
+
+# Dicts (objects)
+user = {"name": "Denis", "age": 30}
+user["name"]           # "Denis"
+user.get("email", "")  # like ?? with a default`}
+</CodeBlock>
+
+## Loops
+
+<CodeBlock language="python" title="Python">
+{`# for...of equivalent
+for item in items:
+    print(item)
+
+# for...of with index (like entries())
+for i, item in enumerate(items):
+    print(i, item)
+
+# while is the same
+while count < 10:
+    count += 1`}
+</CodeBlock>
+
+## List comprehensions
+
+This is Python's killer feature. It's `.map()` and `.filter()` in one line.
+
+<CodeBlock language="python" title="Python → JS comparison">
+{`# Python
+squares = [x ** 2 for x in range(10)]
+evens = [x for x in nums if x % 2 == 0]
+
+# Same thing in JavaScript:
+# const squares = Array.from({length: 10}, (_, x) => x ** 2)
+# const evens = nums.filter(x => x % 2 === 0)`}
+</CodeBlock>
+
+## Imports
+
+<CodeBlock language="python" title="Python">
+{`# Like: import numpy from 'numpy'
+import numpy
+
+# Like: import { array } from 'numpy'
+from numpy import array
+
+# Like: import * as np from 'numpy'
+import numpy as np`}
+</CodeBlock>
+
+## Package management
+
+| JavaScript | Python |
+|-----------|--------|
+| `npm install` | `pip install` |
+| `package.json` | `requirements.txt` |
+| `node_modules/` | virtual environment |
+| `npx` | `python -m` |
+
+## Common gotchas
+
+| JavaScript | Python |
+|-----------|--------|
+| `===` | `==` (no triple equals) |
+| `&&` / `\|\|` | `and` / `or` |
+| `null` | `None` |
+| `console.log()` | `print()` |
+| `arr.length` | `len(arr)` |
+| `arr.push(x)` | `arr.append(x)` |
+| `{}` is truthy | `{}` is falsy! |
+
+<Callout type="warning" title="The empty dict trap">
+In JavaScript, `if ({})` is truthy. In Python, `if {}:` is falsy. Empty lists, dicts, strings, and zero are all falsy in Python. This will bite you.
+</Callout>
+
+<WebDevAnalogy webDev="JavaScript" ai="Python">
+Different syntax, same mental model. The biggest shift is indentation-as-syntax and the standard library being much bigger (Python's "batteries included" means fewer npm-install moments).
+</WebDevAnalogy>
+
+That's it. You know enough Python to read and write AI code. The rest you'll pick up as we go.
+
+Next: [Dev Environment](/bridge/dev-environment) — set up Python, Jupyter, and the libraries you'll need for the rest of this course.
